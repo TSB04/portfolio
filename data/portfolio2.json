@@ -4,26 +4,24 @@
   "headerTaglineTwo": "I'm tsb - curious",
   "headerTaglineThree": "designer and devloper",
   "headerTaglineFour": " based in Paris, France.",
+  "showCursor": true,
   "showBlog": true,
   "darkMode": true,
+  "showResume": true,
   "socials": [
-    {
-      "id": "1",
-      "title": "Github",
-      "link": "https://github.com/tsb04"
-    },
+    { "id": "1", "title": "Github", "link": "https://github.com/tsb04" },
     {
       "id": "2",
       "title": "LinkedIn",
       "link": "https://www.linkedin.com/in/tsb04/"
     },
-    {
-      "id": "3",
-      "title": "Twitter",
-      "link": "https://twitter.com/tsb04"
-    },
+    { "id": "3", "title": "Twitter", "link": "https://twitter.com/tsb" },
     { "id": "4", "title": "Blog", "link": "https://blog.tsb04.com/" },
-    { "id": "5", "title": "Email", "link": "mailto:thierno.sadou.barry98@gmail.com" }
+    {
+      "id": "5",
+      "title": "Email",
+      "link": "mailto:thierno.sadou.barry98@gmail.com"
+    }
   ],
   "projects": [
     {
@@ -93,7 +91,7 @@
   ],
   "aboutpara": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
   "resume": {
-    "tagline": "👋  I'm a software engineer, product designer, and maker.",
+    "tagline": "👋  I'm a software engineer, product designer.",
     "description": "I have delivered world-class user experiences to millions of people. Well-versed with React, Javascript, and most of the Web frameworks.",
     "experiences": [
       {
@@ -101,17 +99,14 @@
         "dates": "March 2022 - Present",
         "type": "Full Time",
         "position": "Frontend Engineer at X",
-        "bullets": [
-          "Worked on the frontend of a React application",
-          "Worked on the frontend of a React application"
-        ]
+        "bullets": "Bullet One, Bullet Two"
       },
       {
-        "id": "2",
-        "dates": "March 2020 - March 2022",
+        "id": "d495c23b-4f65-479a-9b8a-cfbc1c089725",
+        "dates": "July 2020 - March 2022",
         "type": "Full Time",
         "position": "Frontend Engineer at X",
-        "bullets": ["Worked on the frontend of a React application"]
+        "bullets": "Worked on the frontend of a React application, Worked on the frontend of a React application"
       }
     ],
     "education": {
@@ -119,7 +114,7 @@
       "universityDate": "2016-2020",
       "universityPara": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&apos;s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book"
     },
-    "languages": ["Javascript", "HTML5", "CSS", "Python"],
+    "languages": ["Javascript", "HTML5", "CSS", "Python", "Go"],
     "frameworks": ["React", "Typescript", "NodeJs"],
     "others": ["Figma", "AdobeXD", "AWS"]
   }

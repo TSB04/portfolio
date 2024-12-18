@@ -6,9 +6,6 @@ import ProjectResume from "../components/ProjectResume";
 import Socials from "../components/Socials";
 import Button from "../components/Button";
 import { useTheme } from "next-themes";
-// Data
-import { name, showResume } from "../data/portfolio.json";
-import { resume } from "../data/portfolio.json";
 import data from "../data/portfolio.json";
 
 const Resume = () => {
@@ -16,12 +13,15 @@ const Resume = () => {
   const theme = useTheme();
   const [mount, setMount] = useState(false);
 
+  const { name, showResume, resume, showCursor } = data;
+
   useEffect(() => {
     setMount(true);
     if (!showResume) {
       router.push("/");
     }
-  }, []);
+  }, [router, showResume]);
+
   return (
     <>
       {process.env.NODE_ENV === "development" && (
@@ -31,18 +31,18 @@ const Resume = () => {
           </Button>
         </div>
       )}
-      {data.showCursor && <Cursor />}
+      {showCursor && <Cursor />}
       <div
-        className={`container mx-auto mb-10 ${
-          data.showCursor && "cursor-none"
-        }`}
+        className={`container mx-auto mb-10 ${showCursor && "cursor-none"}`}
       >
         <Header isBlog />
         {mount && (
           <div className="mt-10 w-full flex flex-col items-center">
             <div
               className={`w-full ${
-                mount && theme.theme === "dark" ? "bg-slate-800" : "bg-gray-50"
+                mount && theme.theme === "dark"
+                  ? "bg-slate-800"
+                  : "bg-gray-50"
               } max-w-4xl p-20 mob:p-5 desktop:p-20 rounded-lg shadow-sm`}
             >
               <h1 className="text-3xl font-bold">{name}</h1>
@@ -64,7 +64,7 @@ const Resume = () => {
                       type={type}
                       position={position}
                       bullets={bullets}
-                    ></ProjectResume>
+                    />
                   )
                 )}
               </div>
@@ -132,3 +132,4 @@ const Resume = () => {
 };
 
 export default Resume;
+

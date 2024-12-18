@@ -75,3 +75,31 @@ body {
   background: inherit;
   border-radius: inherit;
 }
+
+/* Scrollbar */
+/* width */
+::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+  height: 6px; /* Height of the scrollbar */
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(158, 157, 157, 0.5); /* Color of the scrollbar handle */
+  border-radius: 10px; /* Rounded corners of the scrollbar handle */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(
+    105,
+    105,
+    105,
+    0.8
+  ); /* Color of the scrollbar handle on hover */
+}
+
+/* Button */
+::-webkit-scrollbar-button {
+  height: 18px;
+}

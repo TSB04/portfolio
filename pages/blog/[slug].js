@@ -15,54 +15,57 @@ import Image from "next/image";
 
 const BlogPost = ({ post }) => {
   const [showEditor, setShowEditor] = useState(false);
-  const textOne = useRef();
-  const textTwo = useRef();
+  const textOneRef = useRef(null);
+  const textTwoRef = useRef(null);
   const router = useRouter();
 
   useIsomorphicLayoutEffect(() => {
-    stagger([textOne.current, textTwo.current], { y: 30 }, { y: 0 });
+    stagger([textOneRef.current, textTwoRef.current], { y: 30 }, { y: 0 });
   }, []);
+
+  const handleEditToggle = () => setShowEditor((prev) => !prev);
 
   return (
     <>
       <Head>
-        <title>{"Blog - " + post.title}</title>
+        <title>{`Blog - ${post.title}`}</title>
         <meta name="description" content={post.preview} />
       </Head>
+
       {data.showCursor && <Cursor />}
 
-      <div
-        className={`container mx-auto mt-10 ${
-          data.showCursor && "cursor-none"
-        }`}
-      >
-        <Header isBlog={true} />
+      <div className={`container mx-auto mt-10 ${data.showCursor && "cursor-none"}`}>
+        <Header isBlog />
         <div className="mt-10 flex flex-col">
-          <Image layout="fill"
-            className="w-full h-96 rounded-lg shadow-lg object-cover"
-            src={post.image}
-            alt={post.title}
-          />
+          <div className="relative w-full h-96 rounded-lg shadow-lg overflow-hidden">
+            <Image
+              src={post.image}
+              alt={post.title}
+              layout="fill"
+              className="object-cover"
+            />
+          </div>
           <h1
-            ref={textOne}
-            className="mt-10 text-4xl mob:text-2xl laptop:text-6xl text-bold"
+            ref={textOneRef}
+            className="mt-10 text-4xl mob:text-2xl laptop:text-6xl font-bold"
           >
             {post.title}
           </h1>
           <h2
-            ref={textTwo}
+            ref={textTwoRef}
             className="mt-2 text-xl max-w-4xl text-darkgray opacity-50"
           >
             {post.tagline}
           </h2>
         </div>
-        <ContentSection content={post.content}></ContentSection>
+        <ContentSection content={post.content} />
         <Footer />
       </div>
+
       {process.env.NODE_ENV === "development" && (
         <div className="fixed bottom-6 right-6">
-          <Button onClick={() => setShowEditor(true)} type={"primary"}>
-            Edit this blog
+          <Button onClick={handleEditToggle} type="primary">
+            {showEditor ? "Close Editor" : "Edit this blog"}
           </Button>
         </div>
       )}
@@ -70,7 +73,7 @@ const BlogPost = ({ post }) => {
       {showEditor && (
         <BlogEditor
           post={post}
-          close={() => setShowEditor(false)}
+          close={handleEditToggle}
           refresh={() => router.reload(window.location.pathname)}
         />
       )}
@@ -78,39 +81,32 @@ const BlogPost = ({ post }) => {
   );
 };
 
-export async function getStaticProps({ params }) {
+export const getStaticProps = async ({ params }) => {
   const post = getPostBySlug(params.slug, [
     "date",
     "slug",
     "preview",
     "title",
     "tagline",
-    "preview",
     "image",
     "content",
   ]);
 
   return {
     props: {
-      post: {
-        ...post,
-      },
+      post,
     },
   };
-}
+};
 
-export async function getStaticPaths() {
+export const getStaticPaths = async () => {
   const posts = getAllPosts(["slug"]);
+  const paths = posts.map(({ slug }) => ({ params: { slug } }));
 
   return {
-    paths: posts.map((post) => {
-      return {
-        params: {
-          slug: post.slug,
-        },
-      };
-    }),
+    paths,
     fallback: false,
   };
-}
+};
+
 export default BlogPost;
