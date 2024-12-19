@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply dark:bg-black dark:text-white overflow-hidden;
+  @apply dark:bg-black dark:text-white overflow-auto;
 }
 
 ::-webkit-scrollbar {

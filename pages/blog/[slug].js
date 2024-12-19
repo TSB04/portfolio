@@ -48,7 +48,7 @@ const BlogPost = ({ post }) => {
           </div>
           <h1
             ref={textOneRef}
-            className="mt-10 text-4xl mob:text-2xl laptop:text-6xl font-bold"
+            className="mt-10 text-4xl sm:text-2xl lg:text-6xl font-bold"
           >
             {post.title}
           </h1>

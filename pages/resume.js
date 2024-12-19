@@ -43,7 +43,7 @@ const Resume = () => {
                 mount && theme.theme === "dark"
                   ? "bg-slate-800"
                   : "bg-gray-50"
-              } max-w-4xl p-20 mob:p-5 desktop:p-20 rounded-lg shadow-sm`}
+              } max-w-4xl p-20 sm:p-5 xl:p-20 rounded-lg shadow-sm`}
             >
               <h1 className="text-3xl font-bold">{name}</h1>
               <h2 className="text-xl mt-5">{resume.tagline}</h2>
@@ -82,9 +82,9 @@ const Resume = () => {
               </div>
               <div className="mt-5">
                 <h1 className="text-2xl font-bold">Skills</h1>
-                <div className="flex mob:flex-col desktop:flex-row justify-between">
+                <div className="flex sm:flex-col xl:flex-row justify-between">
                   {resume.languages && (
-                    <div className="mt-2 mob:mt-5">
+                    <div className="mt-2 sm:mt-5">
                       <h2 className="text-lg">Languages</h2>
                       <ul className="list-disc">
                         {resume.languages.map((language, index) => (
@@ -97,7 +97,7 @@ const Resume = () => {
                   )}
 
                   {resume.frameworks && (
-                    <div className="mt-2 mob:mt-5">
+                    <div className="mt-2 sm:mt-5">
                       <h2 className="text-lg">Frameworks</h2>
                       <ul className="list-disc">
                         {resume.frameworks.map((framework, index) => (
@@ -110,7 +110,7 @@ const Resume = () => {
                   )}
 
                   {resume.others && (
-                    <div className="mt-2 mob:mt-5">
+                    <div className="mt-2 sm:mt-5">
                       <h2 className="text-lg">Others</h2>
                       <ul className="list-disc">
                         {resume.others.map((other, index) => (

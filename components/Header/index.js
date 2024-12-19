@@ -47,7 +47,7 @@ const Header = ({ handleWorkScroll, handleAboutScroll, isBlog }) => {
       } shadow-md`}
     >
       {/* Desktop Header */}
-      <div className="hidden md:flex justify-between items-center px-6 py-4">
+      <div className="hidden md:flex justify-between items-center px-6 py-1">
         <h1
           onClick={() => router.push("/")}
           className="text-lg font-bold cursor-pointer"

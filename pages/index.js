@@ -34,6 +34,8 @@ export default function Home() {
     );
   }, []);
 
+  const taglines = [data.headerTaglineOne, data.headerTaglineTwo, data.headerTaglineThree, data.headerTaglineFour];
+
   return (
     <>
       <Head>
@@ -69,25 +71,25 @@ export default function Home() {
 
         <main className="container mx-auto mb-10 overflow-scroll">
           {/* Header Taglines */}
-          <section className="laptop:mt-20 mt-10">
+          <section className="lg:mt-20 mt-10">
             <div className="mt-5 space-y-5">
-              {data.taglines?.map((tagline, index) => (
+              {taglines.map((tagline, index) => (
                 <h1
                   key={index}
                   ref={(el) => (textRefs.current[index] = el)}
-                  className="text-3xl tablet:text-6xl laptop:text-6xl p-1 tablet:p-2 font-bold w-4/5 mob:w-full laptop:w-4/5"
+                  className="text-3xl md:text-6xl lg:text-6xl p-1 md:p-2 font-bold w-4/5 sm:w-full lg:w-4/5"
                 >
                   {tagline}
                 </h1>
               ))}
             </div>
-            <Socials className="mt-2 laptop:mt-5" />
+            <Socials className="mt-2 lg:mt-5" />
           </section>
 
           {/* Work Section */}
-          <section className="mt-10 laptop:mt-30 p-2 laptop:p-0" ref={workRef}>
+          <section className="mt-10 lg:mt-30 p-2 lg:p-0" ref={workRef}>
             <h1 className="text-2xl font-bold">Work.</h1>
-            <div className="mt-5 laptop:mt-10 grid grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 gap-4">
+            <div className="mt-5 lg:mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.projects.map((project) => (
                 <WorkCard
                   key={project.id}
@@ -101,9 +103,9 @@ export default function Home() {
           </section>
 
           {/* Services Section */}
-          <section className="mt-10 laptop:mt-30 p-2 laptop:p-0">
-            <h1 className="tablet:m-10 text-2xl font-bold">Services.</h1>
-            <div className="mt-5 tablet:m-10 grid grid-cols-1 laptop:grid-cols-2 gap-6">
+          <section className="mt-10 lg:mt-30 p-2 lg:p-0">
+            <h1 className="md:m-10 text-2xl font-bold">Services.</h1>
+            <div className="mt-5 md:m-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
               {data.services.map((service, index) => (
                 <ServiceCard
                   key={index}
@@ -116,11 +118,11 @@ export default function Home() {
 
           {/* About Section */}
           <section
-            className="mt-10 laptop:mt-40 p-4 laptop:p-1 w-full rounded"
+            className="mt-10 lg:mt-40 p-4 lg:p-1 w-full rounded"
             ref={aboutRef}
           >
-            <h1 className="tablet:m-10 text-2xl font-bold">About.</h1>
-            <p className="tablet:m-10 mt-2 text-xl laptop:text-3xl">
+            <h1 className="md:m-10 text-2xl font-bold">About.</h1>
+            <p className="md:m-10 mt-2 text-xl lg:text-3xl">
               {data.about}
             </p>
           </section>

@@ -11,6 +11,13 @@ module.exports = {
     fontFamily: {
       sans: ["Hind", "sans-serif"], // Use Hind as the primary font
     },
+    screens: {
+      sm: "375px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1440px",
+    },
     extend: {
       colors: {
         primary: "#6B4EFF", // Primary color
