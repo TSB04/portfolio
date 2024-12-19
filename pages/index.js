@@ -1,5 +1,4 @@
 import { useRef, useCallback, useState, useEffect } from "react";
-import Head from "next/head";
 import Link from "next/link";
 import Header from "../components/Header";
 import ServiceCard from "../components/ServiceCard";
@@ -11,14 +10,14 @@ import Cursor from "../components/Cursor";
 import data from "../data/portfolio.json";
 import { useIsomorphicLayoutEffect } from "../utils";
 import { stagger } from "../animations";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
+import SEOHead from "../components/Seo";
 
 export default function Home() {
   const workRef = useRef(null);
   const aboutRef = useRef(null);
   const textRefs = useRef([]);
-  const [sanitizedHTML, setSanitizedHTML] = useState('');
-
+  const [sanitizedHTML, setSanitizedHTML] = useState("");
 
   const handleScroll = useCallback((ref) => {
     if (ref.current) {
@@ -43,35 +42,15 @@ export default function Home() {
     data.headerTaglineThree,
     data.headerTaglineFour,
   ];
-  
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       setSanitizedHTML(DOMPurify.sanitize(data.aboutpara));
     }
   }, []);
   return (
     <>
-      <Head>
-        <title>{data.name}</title>
-        <meta name="description" content={data.description} />
-        <link rel="icon" href="/favicon.ico" />
-
-        {/* Open Graph and Twitter Metadata */}
-        {[
-          { property: "og:title", content: data.name },
-          { property: "og:description", content: data.description },
-          { property: "og:image", content: data.image },
-          { property: "og:url", content: data.url },
-          { name: "twitter:card", content: "summary_large_image" },
-          { property: "twitter:domain", content: data.url },
-          { property: "twitter:url", content: data.url },
-          { name: "twitter:title", content: data.name },
-          { name: "twitter:description", content: data.description },
-          { name: "twitter:image", content: data.image },
-        ].map((meta, index) => (
-          <meta key={index} {...meta} />
-        ))}
-      </Head>
+      <SEOHead data={data} />
       <div className={`relative ${data.showCursor && "cursor-none"}`}>
         {data.showCursor && <Cursor />}
         <div className="gradient-circle"></div>
