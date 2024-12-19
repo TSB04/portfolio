@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Header from "../components/Header";
@@ -11,11 +11,14 @@ import Cursor from "../components/Cursor";
 import data from "../data/portfolio.json";
 import { useIsomorphicLayoutEffect } from "../utils";
 import { stagger } from "../animations";
+import DOMPurify from 'dompurify';
 
 export default function Home() {
   const workRef = useRef(null);
   const aboutRef = useRef(null);
   const textRefs = useRef([]);
+  const [sanitizedHTML, setSanitizedHTML] = useState('');
+
 
   const handleScroll = useCallback((ref) => {
     if (ref.current) {
@@ -34,8 +37,18 @@ export default function Home() {
     );
   }, []);
 
-  const taglines = [data.headerTaglineOne, data.headerTaglineTwo, data.headerTaglineThree, data.headerTaglineFour];
-
+  const taglines = [
+    data.headerTaglineOne,
+    data.headerTaglineTwo,
+    data.headerTaglineThree,
+    data.headerTaglineFour,
+  ];
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSanitizedHTML(DOMPurify.sanitize(data.aboutpara));
+    }
+  }, []);
   return (
     <>
       <Head>
@@ -122,9 +135,13 @@ export default function Home() {
             ref={aboutRef}
           >
             <h1 className="md:m-10 text-2xl font-bold">About.</h1>
-            <p className="md:m-10 mt-2 text-xl lg:text-3xl">
-              {data.about}
-            </p>
+            {/* <p className="md:m-10 mt-2 text-xl lg:text-3xl">
+              {data.aboutpara}
+            </p> */}
+            <div
+              className="md:m-10 mt-2 text-xl lg:text-3xl"
+              dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
+            />
           </section>
 
           {/* Development-Only Edit Button */}
