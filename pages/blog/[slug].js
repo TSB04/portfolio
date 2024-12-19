@@ -41,7 +41,8 @@ const BlogPost = ({ post }) => {
             <Image
               src={post.image}
               alt={post.title}
-              layout="fill"
+              width={1920}
+              height={1080}
               className="object-cover"
             />
           </div>

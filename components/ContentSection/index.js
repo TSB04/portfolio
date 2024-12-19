@@ -12,11 +12,15 @@ const CodeBlock = {
         language={match[1]}
         PreTag="div"
         {...props}
+        className="bg-gray-900 text-white rounded-lg p-4 my-4" // Tailwind for syntax highlight block
       >
         {String(children).replace(/\n$/, "")}
       </SyntaxHighlighter>
     ) : (
-      <code className={className} {...props}>
+      <code
+        className={`text-sm text-gray-800 bg-gray-200 p-1 rounded-md ${className}`} // Tailwind for inline code
+        {...props}
+      >
         {children}
       </code>
     );
@@ -25,7 +29,7 @@ const CodeBlock = {
 
 const ContentSection = ({ content }) => {
   return (
-    <ReactMarkdown components={CodeBlock} className="markdown-class">
+    <ReactMarkdown components={CodeBlock} className="markdown-class prose dark:prose-invert">
       {content}
     </ReactMarkdown>
   );
