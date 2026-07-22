@@ -1,11 +1,34 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import {  getSiteConfig, getSiteContent  } from "@config";
+import Layout from "@layouts/Layout.astro";
+import Hero from "@components/Hero.astro";
+import Experience from "@components/Experience.astro";
+import Projects from "@components/Projects.astro";
+import About from "@components/About.astro";
+import { getTranslation, type Locale } from "../i18n";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import "../styles/global.css";
+
+export function getStaticPaths() {
+  return [
+    { params: { locale: undefined } }, // Default (en)
+    { params: { locale: "fr" } },
+  ];
+}
+
+const { locale = "en" } = Astro.params as { locale?: Locale };
+const config = getSiteConfig(locale);
+const content = getSiteContent(locale);
+const t = getTranslation(locale);
+
+const pageTitle = locale === "fr" 
+  ? `${config.author} — Ingénieur Full Stack` 
+  : `${config.author} — Full Stack Engineer`;
 ---
 
-<Layout>
-	<Welcome />
+<Layout title={pageTitle} description={config.description} locale={locale}>
+  <Hero {...content.hero} t={t} />
+  <Experience experience={content.experience} t={t} />
+  <Projects projects={content.projects} t={t} />
+  <About {...content.about} name={content.hero.name} t={t} />
 </Layout>

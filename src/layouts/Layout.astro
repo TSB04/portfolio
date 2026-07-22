@@ -1,23 +1,176 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+import Header from "@components/Header.astro";
+import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
+import { getSiteConfig, getSiteContent } from "@config";
+import Footer from "@components/Footer.astro";
+import { getTranslation, type Locale } from "../i18n";
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+import "../styles/global.css";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  locale?: Locale;
+}
+
+const { locale = "en" } = Astro.props;
+
+const config = getSiteConfig(locale);
+const content = getSiteContent(locale);
+const t = getTranslation(locale);
+
+const {
+  title: baseTitle,
+  description: baseDescription,
+  siteLogo,
+  navLinks,
+  lang,
+  author,
+  socialLinks,
+  socialImage,
+} = config;
+
+const baseUrl = Astro.site?.href || "https://tsb-dev.fr";
+const canonicalURL = new URL(Astro.url.pathname, baseUrl).href;
+const title = Astro.props.title || baseTitle;
+const description = Astro.props.description || baseDescription;
+const ogImgUrl = new URL(socialImage, baseUrl).href;
+const pageTitle = title ? `${title} | ${config.author}` : config.author;
+
+// Language alternates
+const currentPath = Astro.url.pathname.replace(/^\/(en|fr)/, "") || "/";
+const enUrl = new URL(currentPath, baseUrl).href;
+const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl).href;
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-pt-16 scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Theme initialization (prevents flash) -->
+   <!-- Layout.astro — add this inside <head>, AFTER the init script -->
+<script is:inline>
+  (function () {
+    function applyTheme() {
+      const theme =
+        localStorage.getItem("theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light");
+      
+      const html = document.documentElement;
+      if (theme === "dark") {
+        html.classList.add("dark");
+        html.style.colorScheme = "dark";
+      } else {
+        html.classList.remove("dark");
+        html.style.colorScheme = "light";
+      }
+    }
+
+    // Run on initial load
+    applyTheme();
+
+    // Re-apply after every client-side navigation swap
+    document.addEventListener("astro:after-swap", applyTheme);
+  })();
+</script>
+
+    <ClientRouter fallback="swap" />
+
+    <meta name="author" content={author} />
+    <meta name="description" content={description} />
+    <meta name="keywords" content={config.keywords?.join(", ")} />
+    <meta name="robots" content="index, follow" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#0e141b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Alternate language links -->
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="fr" href={frUrl} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
+    <title>{pageTitle}</title>
+
+    <Font cssVariable="--font-gabarito" preload />
+    <Font cssVariable="--font-be-vietnam-pro" preload />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={author} />
+    <meta property="og:locale" content={lang === "en" ? "en_US" : "fr_FR"} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImgUrl} />
+    <meta property="og:image:alt" content={`${author} portfolio preview`} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@tsb04" />
+    <meta name="twitter:creator" content="@tsb04" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImgUrl} />
+    <meta name="twitter:image:alt" content={`${author} portfolio preview`} />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: author,
+        url: canonicalURL,
+        image: ogImgUrl,
+        jobTitle:
+          locale === "fr"
+            ? "Ingénieur Logiciel Full Stack"
+            : "Full Stack Software Engineer",
+        worksFor: { "@type": "Organization", name: "MTAE" },
+        sameAs: socialLinks.map((link) => link.href),
+        description: description,
+        knowsLanguage: ["en", "fr"],
+      })}
+    />
+
+    <slot name="head" />
+  </head>
+
+<!-- Layout.astro -->
+<body class="bg-bg text-fg font-sans antialiased scrollbar-hidden overflow-hidden h-screen">
+  <div class="flex flex-col h-full">
+    <Header
+      siteLogo={siteLogo}
+      navLinks={navLinks}
+      locale={locale}
+      transition:persist
+    />
+
+    <div class="flex-1 overflow-y-auto w-full scrollbar-thin">
+    <main class="mx-auto max-w-3xl px-5 pt-8 pb-16">
+        <slot />
+    </main>
+
+    <Footer
+      author={author}
+      socialLinks={socialLinks}
+      locale={locale}
+      transition:persist
+    />
+    </div>
+  </div>
+</body>
+</html>

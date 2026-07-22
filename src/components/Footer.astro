@@ -1,0 +1,58 @@
+---
+import type { SiteConfig } from "@types";
+import { getTranslation, type Locale } from "../i18n";
+
+type Props = Pick<SiteConfig, "author" | "socialLinks"> & {
+  locale?: Locale;
+};
+
+const { author, socialLinks, locale = "en" } = Astro.props;
+const t = getTranslation(locale);
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="w-full border-t border-border bg-bg px-5 pt-8 pb-10 text-center">
+  <!-- Social Links -->
+  <ul class="mb-6 flex flex-wrap justify-center gap-x-2 gap-y-2">
+    {
+      socialLinks.map(({ text, href }) => (
+        <li>
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm text-muted-fg transition-colors duration-200 hover:bg-muted hover:text-fg"
+          >
+            <span>{text}</span>
+            <svg
+              class="h-3 w-3 opacity-50 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M7 17L17 7M17 7H7M17 7v10"
+              />
+            </svg>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <!-- Divider -->
+  <div class="mx-auto mb-6 h-px w-16 bg-border" />
+
+  <!-- Copyright -->
+  <p class="text-xs text-muted-fg">
+    <span class="text-fg font-medium">{author}</span>
+    <span class="mx-1">©</span>
+    <span>{currentYear}</span>
+    <span class="mx-2 text-border">·</span>
+    <span>{t.footer.builtWith} Astro & Tailwind</span>
+  </p>
+</footer>
