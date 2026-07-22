@@ -65,7 +65,6 @@ export interface SiteConfig {
   description: string;
   keywords: string[];
   lang: string;
-  siteLogo: string;
   navLinks: NavLink[];
   socialLinks: SocialLink[];
   socialImage: string;
@@ -86,8 +85,9 @@ export interface TranslationKeys {
     availability: string;
     ctaContact: string;
     ctaProjects: string;
+    role: string;
   };
-  experience: {
+  experiences: {
     title: string;
     present: string;
     technologies: string;

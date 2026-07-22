@@ -1,49 +1,31 @@
 ---
-// No server-side logic needed — handled by client script
+import type { Locale } from "@i18n";
+import { getTranslation } from "@i18n";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
 ---
 
 <button
   id="theme-toggle"
   class="group relative flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted text-muted-fg transition-all duration-200 hover:border-muted-fg/30 hover:bg-muted-fg/10 hover:text-fg focus:outline-none focus:ring-2 focus:ring-ring"
-  aria-label="Toggle theme"
-  title="Toggle theme"
+  aria-label={t.theme.toggle}
+  title={t.theme.toggle}
 >
-  <!-- Sun icon (shown in dark mode) -->
-  <svg
-    id="theme-icon-sun"
-    class="h-4 w-4 hidden"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-    />
+  <svg id="theme-icon-sun" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
   </svg>
-
-  <!-- Moon icon (shown in light mode) -->
-  <svg
-    id="theme-icon-moon"
-    class="h-4 w-4 hidden"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-    />
+  <svg id="theme-icon-moon" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
   </svg>
 </button>
 
 <script is:inline data-astro-rerun>
   (function () {
-    // Prevent double-init if script re-runs
     if (window.__themeToggleInit) return;
     window.__themeToggleInit = true;
 
@@ -52,9 +34,7 @@
     function getTheme() {
       const stored = localStorage.getItem("theme");
       if (stored === "light" || stored === "dark") return stored;
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
 
     function setTheme(theme) {
@@ -73,33 +53,21 @@
       const sun = document.getElementById("theme-icon-sun");
       const moon = document.getElementById("theme-icon-moon");
       if (!sun || !moon) return;
-      if (theme === "dark") {
-        sun.classList.remove("hidden");
-        moon.classList.add("hidden");
-      } else {
-        sun.classList.add("hidden");
-        moon.classList.remove("hidden");
-      }
+      sun.classList.toggle("hidden", theme !== "dark");
+      moon.classList.toggle("hidden", theme !== "light");
     }
 
     function initToggle() {
       const toggle = document.getElementById("theme-toggle");
       if (!toggle) return;
-
-      // Remove old listener to prevent duplicates
-      toggle.replaceWith(toggle.cloneNode(true));
-      const freshToggle = document.getElementById("theme-toggle");
-
-      freshToggle?.addEventListener("click", () => {
-        setTheme(getTheme() === "dark" ? "light" : "dark");
-      });
+      const fresh = toggle.cloneNode(true);
+      toggle.parentNode?.replaceChild(fresh, toggle);
+      fresh.addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
     }
 
-    // Initialize on first load
     setTheme(getTheme());
     initToggle();
 
-    // Re-init after every client-side navigation
     document.addEventListener("astro:page-load", () => {
       setTheme(getTheme());
       initToggle();

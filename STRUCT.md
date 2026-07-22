@@ -15,6 +15,7 @@ src/
 │   ├── en.ts                  ← NEW
 │   └── fr.ts                  ← NEW
 ├── config/
+|   ├── index.ts  
 │   └── SiteConfig.ts
 ├── types.ts                   ← UPDATED
 ├── styles/

@@ -6,17 +6,13 @@ import Menu from "@icons/Menu.astro";
 import { Image } from "astro:assets";
 import Logo from "@images/logo.png";
 
-// import type { HeaderProps } from "@types";
-
 export interface Props {
-  // siteLogo: string;
   navLinks: { text: string; href: string }[];
   locale?: Locale;
 }
 
-// type Props = HeaderProps;
-
 const { navLinks, locale = "en" } = Astro.props;
+const homeHref = locale === "fr" ? "/fr" : "/";
 ---
 
 <header
@@ -76,8 +72,8 @@ const { navLinks, locale = "en" } = Astro.props;
 
     <!-- Controls -->
     <div class="flex items-center gap-2">
-      <ThemeToggle />
-      <LanguageToggle currentLocale={locale} />
+      <ThemeToggle locale={locale}  />
+      <LanguageToggle locale={locale} />
     </div>
   </nav>
 </header>

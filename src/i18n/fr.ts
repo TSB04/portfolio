@@ -11,8 +11,10 @@ export const fr: TranslationKeys = {
     availability: "Disponible pour missions freelance & CDI",
     ctaContact: "Me Contacter",
     ctaProjects: "Voir les Projets",
+    role: "Ingénieur Full Stack",
+
   },
-  experience: {
+  experiences: {
     title: "Expérience",
     present: "Aujourd'hui",
     technologies: "Technologies",

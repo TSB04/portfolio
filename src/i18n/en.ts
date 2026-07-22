@@ -11,8 +11,9 @@ export const en: TranslationKeys = {
     availability: "Open to freelance & full-time opportunities",
     ctaContact: "Get in Touch",
     ctaProjects: "View Projects",
+      role: "Full Stack Engineer",
   },
-  experience: {
+  experiences: {
     title: "Experience",
     present: "Present",
     technologies: "Technologies",

@@ -1,34 +1,9 @@
 ---
-import {  getSiteConfig, getSiteContent  } from "@config";
-import Layout from "@layouts/Layout.astro";
-import Hero from "@components/Hero.astro";
-import Experience from "@components/Experience.astro";
-import Projects from "@components/Projects.astro";
-import About from "@components/About.astro";
-import { getTranslation, type Locale } from "../i18n";
+// Redirection vers la langue préférée de l'utilisateur
+// ou vers la locale par défaut
+const preferredLocale = Astro.preferredLocale;
+const defaultLocale = "en";
+const target = preferredLocale?.startsWith("fr") ? "/fr" : `/${defaultLocale}`;
 
-import "../styles/global.css";
-
-export function getStaticPaths() {
-  return [
-    { params: { locale: undefined } }, // Default (en)
-    { params: { locale: "fr" } },
-  ];
-}
-
-const { locale = "en" } = Astro.params as { locale?: Locale };
-const config = getSiteConfig(locale);
-const content = getSiteContent(locale);
-const t = getTranslation(locale);
-
-const pageTitle = locale === "fr" 
-  ? `${config.author} — Ingénieur Full Stack` 
-  : `${config.author} — Full Stack Engineer`;
+return Astro.redirect(target);
 ---
-
-<Layout title={pageTitle} description={config.description} locale={locale}>
-  <Hero {...content.hero} t={t} />
-  <Experience experience={content.experience} t={t} />
-  <Projects projects={content.projects} t={t} />
-  <About {...content.about} name={content.hero.name} t={t} />
-</Layout>
