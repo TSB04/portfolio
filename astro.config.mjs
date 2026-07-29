@@ -37,6 +37,13 @@ export default defineConfig({
 
   // Optional: Image optimization
   image: {
+     service: {
+      entrypoint: "astro/assets/services/sharp"
+    },
+     domains: [
+      "images.unsplash.com",
+      "cdn.example.com"
+    ],
     remotePatterns: [{ protocol: "https" }],
   },
 

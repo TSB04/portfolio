@@ -11,61 +11,209 @@ interface Props {
 const { experience, t } = Astro.props;
 ---
 
-<Section text={"t.experience.title"} href="experience">
-  <div class="flex flex-col gap-10">
-    {experience.map(({ company, position, startDate, endDate, location, summary, technologies }) => (
-      <article class="group">
-        {/* Company & Meta */}
-        <header class="mb-4">
-          <h3 class="font-serif text-2xl font-semibold text-fg">
-            {company}
-          </h3>
+<Section text={t.experiences.title} href="experience">
+  <div class="experience-timeline relative flex flex-col gap-0">
+    {/* Vertical connecting line */}
+    <div class="timeline-line absolute left-[11px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-primary via-accent to-transparent md:left-[15px]" aria-hidden="true"></div>
+
+    {experience.map(({ company, position, startDate, endDate, location, summary, technologies }, index) => (
+      <article class="experience-card group relative pl-10 md:pl-14 pb-12 last:pb-0" style={`--stagger: ${index}`}>
+        
+        {/* Timeline node */}
+        <div class="timeline-node absolute left-0 top-1.5 flex h-6 w-6 items-center justify-center md:top-2">
+          <span class="absolute h-full w-full rounded-full bg-primary/20 animate-ping-slow"></span>
+          <span class="relative h-3 w-3 rounded-full border-2 border-primary bg-bg shadow-[0_0_12px_-2px_var(--color-primary)] transition-all duration-300 group-hover:scale-125 group-hover:bg-primary group-hover:shadow-[0_0_20px_-2px_var(--color-primary)] md:h-4 md:w-4"></span>
+        </div>
+
+        {/* Card */}
+        <div class="card experience-inner relative overflow-hidden rounded-xl border border-border bg-surface/80 p-6 backdrop-blur-sm transition-all duration-500 md:p-8">
           
-          <div class="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h4 class="font-serif text-xl font-medium text-primary">
-              {position}
-            </h4>
-            <span class="text-sm text-muted-fg font-mono">
-              {startDate} — {endDate || "t.experience.present"}
-            </span>
-            {location && (
-              <span class="text-sm text-muted-fg/70">
-                {location}
-              </span>
-            )}
-          </div>
-        </header>
+          {/* Subtle gradient glow on hover */}
+          <div class="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-primary/5 blur-3xl transition-all duration-700 group-hover:bg-primary/10 group-hover:scale-150" aria-hidden="true"></div>
+          <div class="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-accent/5 blur-3xl transition-all duration-700 group-hover:bg-accent/10 group-hover:scale-150" aria-hidden="true"></div>
 
-        {/* Summary bullets */}
-        {summary.length > 0 && (
-          <ul class="mb-4 flex flex-col gap-2.5" role="list">
-            {summary.map((log) => (
-              <li class="relative pl-7 text-base leading-relaxed text-muted-fg before:absolute before:top-[0.35rem] before:left-0 before:h-4 before:w-4 before:content-['']">
-                <span class="absolute left-0 top-[0.35rem] h-4 w-4 text-primary" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M2 8l4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/>
+          {/* Header */}
+          <header class="relative mb-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 class="font-serif text-2xl font-bold tracking-tight text-fg transition-colors duration-300 group-hover:text-primary md:text-3xl">
+                {company}
+              </h3>
+              
+              {/* Date badge */}
+              <time class="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 font-mono text-xs font-medium text-muted-fg backdrop-blur-sm">
+                <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+                {startDate}
+                <span class="text-fg-subtle">→</span>
+                {endDate ? (
+                  <span>{endDate}</span>
+                ) : (
+                  <span class="relative flex items-center gap-1.5 text-accent">
+                    {t.experiences.present}
+                    <span class="relative flex h-2 w-2">
+                      <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75"></span>
+                      <span class="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
+                    </span>
+                  </span>
+                )}
+              </time>
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <h4 class="text-lg font-semibold text-primary md:text-xl">
+                {position}
+              </h4>
+              {location && (
+                <span class="flex items-center gap-1.5 text-sm text-muted-fg">
+                  <svg class="h-3.5 w-3.5 text-fg-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                   </svg>
+                  {location}
                 </span>
-                {log}
-              </li>
-            ))}
-          </ul>
-        )}
+              )}
+            </div>
+          </header>
 
-        {/* Technologies */}
-        {technologies.length > 0 && (
-          <footer class="flex flex-wrap items-center gap-2">
-            <span class="text-xs font-medium uppercase tracking-wider text-muted-fg/60">
-              {"t.experience.technologies"}
-            </span>
-            {technologies.map((tech) => (
-              <span class="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-fg transition-colors group-hover:border-muted-fg/20">
-                {tech}
+          {/* Summary with animated checkmarks */}
+          {summary.length > 0 && (
+            <ul class="mb-6 flex flex-col gap-3" role="list">
+              {summary.map((log, i) => (
+                <li class="check-item relative flex gap-3 text-base leading-relaxed text-muted-fg" style={`--check-delay: ${i * 80}ms`}>
+                  <span class="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary-muted text-primary" aria-hidden="true">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path class="check-path" d="M2 8l4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span class="transition-colors duration-300 group-hover:text-fg-muted">{log}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Technologies */}
+          {technologies.length > 0 && (
+            <footer class="relative flex flex-wrap items-center gap-2 pt-4 border-t border-border/50">
+              <span class="mr-1 text-xs font-semibold uppercase tracking-wider text-fg-subtle">
+                {t.experiences.technologies}
               </span>
-            ))}
-          </footer>
-        )}
+              {technologies.map((tech, i) => (
+                <span 
+                  class="tech-tag inline-flex items-center rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-fg transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary-muted hover:text-primary hover:shadow-[0_0_12px_-4px_var(--color-primary-muted)]"
+                  style={`--tech-delay: ${i * 50}ms`}
+                >
+                  {tech}
+                </span>
+              ))}
+            </footer>
+          )}
+        </div>
       </article>
     ))}
   </div>
 </Section>
+
+<style>
+  /* Timeline connector line animation */
+  .timeline-line {
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: opacity 0.8s ease, transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .experience-timeline.is-visible .timeline-line {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  /* Card entrance */
+  .experience-card {
+    opacity: 0;
+    transform: translateX(2rem);
+    transition: 
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--stagger) * 150ms),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--stagger) * 150ms);
+  }
+  .experience-timeline.is-visible .experience-card {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Timeline node entrance */
+  .timeline-node {
+    opacity: 0;
+    scale: 0;
+    transition: 
+      opacity 0.4s ease calc(var(--stagger) * 150ms + 200ms),
+      scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--stagger) * 150ms + 200ms);
+  }
+  .experience-timeline.is-visible .timeline-node {
+    opacity: 1;
+    scale: 1;
+  }
+
+  /* Checkmark draw animation */
+  .check-path {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    transition: stroke-dashoffset 0.5s ease var(--check-delay);
+  }
+  .experience-timeline.is-visible .check-path {
+    stroke-dashoffset: 0;
+  }
+
+  /* Tech tag stagger */
+  .tech-tag {
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition: 
+      opacity 0.4s ease calc(var(--stagger) * 150ms + 400ms + var(--tech-delay)),
+      transform 0.4s ease calc(var(--stagger) * 150ms + 400ms + var(--tech-delay)),
+      border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .experience-timeline.is-visible .tech-tag {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Slow ping for timeline nodes */
+  @keyframes ping-slow {
+    75%, 100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+  .animate-ping-slow {
+    animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Card hover lift enhancement */
+  .experience-inner {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                box-shadow 0.4s ease,
+                border-color 0.3s ease;
+  }
+  .experience-card:hover .experience-inner {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15), 
+                0 0 0 1px var(--color-border-strong);
+  }
+  .dark .experience-card:hover .experience-inner {
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px var(--color-border-strong),
+                0 0 30px -10px var(--color-primary-muted);
+  }
+</style>
+
+<script>
+  // IntersectionObserver for the timeline container
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.experience-timeline').forEach(el => observer.observe(el));
+</script>

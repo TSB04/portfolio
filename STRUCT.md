@@ -1,4 +1,10 @@
 src/
+├── assets/
+│   ├── images
+│   |   ├── branding/
+│   |   ├── profile
+│   |   └── ...
+|   └── ... 
 ├── components/
 │   ├── Header.astro
 │   ├── Footer.astro

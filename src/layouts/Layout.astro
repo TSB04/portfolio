@@ -23,9 +23,9 @@ const t = getTranslation(locale);
 const {
   title: baseTitle,
   description: baseDescription,
-  siteLogo,
   navLinks,
   lang,
+  siteLogo,
   author,
   socialLinks,
   socialImage,
@@ -38,10 +38,10 @@ const description = Astro.props.description || baseDescription;
 const ogImgUrl = new URL(socialImage, baseUrl).href;
 const pageTitle = title ? `${title} | ${config.author}` : config.author;
 
-// Language alternates
 const currentPath = Astro.url.pathname.replace(/^\/(en|fr)/, "") || "/";
 const enUrl = new URL(currentPath, baseUrl).href;
-const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl).href;
+const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
+  .href;
 ---
 
 <!doctype html>
@@ -51,34 +51,28 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl).h
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <!-- Theme initialization (prevents flash) -->
-   <!-- Layout.astro — add this inside <head>, AFTER the init script -->
-<script is:inline>
-  (function () {
-    function applyTheme() {
-      const theme =
-        localStorage.getItem("theme") ||
-        (window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light");
-      
-      const html = document.documentElement;
-      if (theme === "dark") {
-        html.classList.add("dark");
-        html.style.colorScheme = "dark";
-      } else {
-        html.classList.remove("dark");
-        html.style.colorScheme = "light";
-      }
-    }
-
-    // Run on initial load
-    applyTheme();
-
-    // Re-apply after every client-side navigation swap
-    document.addEventListener("astro:after-swap", applyTheme);
-  })();
-</script>
+    <!-- Theme initialization -->
+    <script is:inline>
+      (function () {
+        function applyTheme() {
+          const theme =
+            localStorage.getItem("theme") ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light");
+          const html = document.documentElement;
+          if (theme === "dark") {
+            html.classList.add("dark");
+            html.style.colorScheme = "dark";
+          } else {
+            html.classList.remove("dark");
+            html.style.colorScheme = "light";
+          }
+        }
+        applyTheme();
+        document.addEventListener("astro:after-swap", applyTheme);
+      })();
+    </script>
 
     <ClientRouter fallback="swap" />
 
@@ -87,8 +81,16 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl).h
     <meta name="keywords" content={config.keywords?.join(", ")} />
     <meta name="robots" content="index, follow" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#0e141b" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta
+      name="theme-color"
+      content="#0e141b"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+    />
 
     <link rel="canonical" href={canonicalURL} />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -96,7 +98,6 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl).h
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Alternate language links -->
     <link rel="alternate" hreflang="en" href={enUrl} />
     <link rel="alternate" hreflang="fr" href={frUrl} />
 
@@ -146,31 +147,49 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl).h
       })}
     />
 
+    <script>
+      document.addEventListener("keydown", (e) => {
+        const container = document.querySelector(".snap-y");
+        if (!container) return;
+        const pageHeight = window.innerHeight - 80; // 5rem header
+        if (e.key === "ArrowDown" || e.key === "PageDown") {
+          e.preventDefault();
+          container.scrollBy({ top: pageHeight, behavior: "smooth" });
+        }
+        if (e.key === "ArrowUp" || e.key === "PageUp") {
+          e.preventDefault();
+          container.scrollBy({ top: -pageHeight, behavior: "smooth" });
+        }
+      });
+    </script>
+
     <slot name="head" />
   </head>
 
-<!-- Layout.astro -->
-<body class="bg-bg text-fg font-sans antialiased scrollbar-hidden overflow-hidden h-screen">
-  <div class="flex flex-col h-full">
-    <Header
-      siteLogo={siteLogo}
-      navLinks={navLinks}
-      locale={locale}
-      transition:persist
-    />
+  <body class="text-fg font-sans antialiased overflow-hidden h-screen">
+    <div class="flex flex-col h-full w-full bg-bg">
+      <Header
+        siteLogo={siteLogo}
+        navLinks={navLinks}
+        locale={locale}
+        transition:persist
+      />
 
-    <div class="flex-1 overflow-y-auto w-full scrollbar-thin">
-    <main class="mx-auto max-w-3xl px-5 pt-8 pb-16">
-        <slot />
-    </main>
+      <!-- BOOK SCROLL CONTAINER: snap-y snap-mandatory added -->
+      <div
+        class="flex-1 overflow-y-auto w-full scrollbar-thin snap-y snap-proximity scroll-smooth"
+      >
+        <main class="mx-auto w-full">
+          <slot />
+        </main>
 
-    <Footer
-      author={author}
-      socialLinks={socialLinks}
-      locale={locale}
-      transition:persist
-    />
+        <Footer
+          author={author}
+          socialLinks={socialLinks}
+          locale={locale}
+          transition:persist
+        />
+      </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>

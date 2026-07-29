@@ -2,16 +2,16 @@
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"],
-   "compilerOptions": {
+  "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@components/*": ["src/components/*"],
       "@layouts/*": ["src/layouts/*"],
-      "@images/*": ["src/images/*"],
       "@icons/*": ["src/icons/*"],
       "@types": ["src/types/index.ts"],
       "@config": ["src/config/index.ts"],
-      "@i18n": ["src/i18n/index.ts"]
+      "@i18n": ["src/i18n/index.ts"],
+      "@images/*": ["src/assets/images/*"]
     }
   }
 }

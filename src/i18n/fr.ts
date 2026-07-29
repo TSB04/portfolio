@@ -8,7 +8,7 @@ export const fr: TranslationKeys = {
     contact: "Contact",
   },
   hero: {
-    availability: "Disponible pour missions freelance & CDI",
+    availability: "Disponible pour missions freelance",
     ctaContact: "Me Contacter",
     ctaProjects: "Voir les Projets",
     role: "Ingénieur Full Stack",

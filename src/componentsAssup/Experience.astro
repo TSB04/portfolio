@@ -1,0 +1,71 @@
+---
+import Section from "./Section.astro";
+import type { TranslationKeys } from "@i18n";
+import type { ExperienceItem } from "@types";
+
+interface Props {
+  experience: ExperienceItem[];
+  t: TranslationKeys;
+}
+
+const { experience, t } = Astro.props;
+---
+
+<Section text={"t.experience.title"} href="experience">
+  <div class="flex flex-col gap-10">
+    {experience.map(({ company, position, startDate, endDate, location, summary, technologies }) => (
+      <article class="group">
+        {/* Company & Meta */}
+        <header class="mb-4">
+          <h3 class="font-serif text-2xl font-semibold text-fg">
+            {company}
+          </h3>
+          
+          <div class="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h4 class="font-serif text-xl font-medium text-primary">
+              {position}
+            </h4>
+            <span class="text-sm text-muted-fg font-mono">
+              {startDate} — {endDate || "t.experience.present"}
+            </span>
+            {location && (
+              <span class="text-sm text-muted-fg/70">
+                {location}
+              </span>
+            )}
+          </div>
+        </header>
+
+        {/* Summary bullets */}
+        {summary.length > 0 && (
+          <ul class="mb-4 flex flex-col gap-2.5" role="list">
+            {summary.map((log) => (
+              <li class="relative pl-7 text-base leading-relaxed text-muted-fg before:absolute before:top-[0.35rem] before:left-0 before:h-4 before:w-4 before:content-['']">
+                <span class="absolute left-0 top-[0.35rem] h-4 w-4 text-primary" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M2 8l4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                {log}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Technologies */}
+        {technologies.length > 0 && (
+          <footer class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium uppercase tracking-wider text-muted-fg/60">
+              {"t.experience.technologies"}
+            </span>
+            {technologies.map((tech) => (
+              <span class="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-fg transition-colors group-hover:border-muted-fg/20">
+                {tech}
+              </span>
+            ))}
+          </footer>
+        )}
+      </article>
+    ))}
+  </div>
+</Section>

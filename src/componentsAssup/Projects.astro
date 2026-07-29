@@ -1,0 +1,115 @@
+---
+import Section from "./Section.astro";
+import OptimizedImage from "@components/OptimizedImage.astro";
+import type { TranslationKeys } from "@i18n";
+import type { ProjectItem } from "@types";
+import pattern from "@images/raja.jpg";
+
+interface Props {
+  projects: ProjectItem[];
+  t: TranslationKeys;
+}
+
+const { projects, t } = Astro.props;
+---
+
+<Section text={t.projects.title} href="projects">
+  <div class="flex flex-col gap-6">
+    {projects.map(({ name, summary, image, linkPreview, linkSource, tags }, index) => {
+      const top = 98 + index * 40;
+      return (
+        <article
+          style={`top: ${top}px;`}
+          class="sticky mb-8 rounded-2xl border border-border bg-muted/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-muted-fg/30 hover:shadow-md"
+        >
+          <div class="relative grid h-auto w-full grid-rows-2 overflow-hidden rounded-2xl bg-bg/90 sm:grid-cols-2 sm:grid-rows-1 md:h-[28rem]">
+            {/* Subtle pattern overlay */}
+            <div
+              class="pointer-events-none absolute inset-0 z-0 opacity-[0.03]"
+              style=`background-image: url(${pattern.src}); background-size: 128px; background-repeat: repeat;`
+              aria-hidden="true"
+            />
+
+            {/* Content */}
+            <div class="relative z-10 flex flex-col justify-center px-6 py-10 sm:px-8 sm:py-12">
+              <h3 class="mb-4 font-serif text-3xl font-medium text-fg">
+                {name}
+              </h3>
+
+              <p class="mb-6 text-base leading-relaxed text-muted-fg">
+                {summary}
+              </p>
+
+              {/* Tags */}
+              {tags && tags.length > 0 && (
+                <div class="mb-6 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span class="rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-fg">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Links */}
+              <div class="flex flex-wrap items-center gap-5">
+                {linkSource && (
+                  <a
+                    href={linkSource}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="group/link inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-primary"
+                  >
+                    {t.projects.sourceCode}
+                    <svg
+                      class="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                )}
+
+                {linkPreview && (
+                  <a
+                    href={linkPreview}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="group/link inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-primary"
+                  >
+                    {t.projects.viewProject}
+                    <svg
+                      class="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Image */}
+            <div class="relative z-10 flex items-end justify-end overflow-hidden sm:h-full">
+              <OptimizedImage
+                class="h-full w-full object-cover object-top sm:h-[90%] sm:w-full sm:rounded-ss-2xl"
+                src={image}
+                alt={`${name} project preview`}
+                width={736}
+                height={483}
+                 priority={index < 2}
+                loading={index < 2 ? "eager" : "lazy"}
+              />
+            </div>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</Section>

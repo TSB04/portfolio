@@ -25,7 +25,7 @@ export interface ProjectItem {
   summary: string;
   linkPreview: string;
   linkSource: string;
-  image: string;
+  image: ImageMetadata;
   tags: string[];
 }
 
@@ -48,7 +48,7 @@ export interface HeroContent {
 
 export interface AboutContent {
   description: string;
-  image: string;
+  image: ImageMetadata;
 }
 
 export interface SiteContent {
@@ -65,6 +65,7 @@ export interface SiteConfig {
   description: string;
   keywords: string[];
   lang: string;
+  siteLogo: ImageMetadata;
   navLinks: NavLink[];
   socialLinks: SocialLink[];
   socialImage: string;

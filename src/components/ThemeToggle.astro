@@ -26,11 +26,6 @@ const t = getTranslation(locale);
 
 <script is:inline data-astro-rerun>
   (function () {
-    if (window.__themeToggleInit) return;
-    window.__themeToggleInit = true;
-
-    const html = document.documentElement;
-
     function getTheme() {
       const stored = localStorage.getItem("theme");
       if (stored === "light" || stored === "dark") return stored;
@@ -39,12 +34,14 @@ const t = getTranslation(locale);
 
     function setTheme(theme) {
       localStorage.setItem("theme", theme);
+      // Query fresh every time — don't cache in closure
+      const root = document.documentElement;
       if (theme === "dark") {
-        html.classList.add("dark");
-        html.style.colorScheme = "dark";
+        root.classList.add("dark");
+        root.style.colorScheme = "dark";
       } else {
-        html.classList.remove("dark");
-        html.style.colorScheme = "light";
+        root.classList.remove("dark");
+        root.style.colorScheme = "light";
       }
       updateIcons(theme);
     }
@@ -52,25 +49,25 @@ const t = getTranslation(locale);
     function updateIcons(theme) {
       const sun = document.getElementById("theme-icon-sun");
       const moon = document.getElementById("theme-icon-moon");
-      if (!sun || !moon) return;
-      sun.classList.toggle("hidden", theme !== "dark");
-      moon.classList.toggle("hidden", theme !== "light");
+      // Sun = "switch to dark" affordance -> visible in light mode.
+      // Moon = "switch to light" affordance -> visible in dark mode.
+      if (sun) sun.classList.toggle("hidden", theme === "dark");
+      if (moon) moon.classList.toggle("hidden", theme === "light");
     }
 
     function initToggle() {
       const toggle = document.getElementById("theme-toggle");
       if (!toggle) return;
+      // Clone to strip any old listeners, then attach fresh one
       const fresh = toggle.cloneNode(true);
       toggle.parentNode?.replaceChild(fresh, toggle);
-      fresh.addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
+      fresh.addEventListener("click", () => {
+        setTheme(getTheme() === "dark" ? "light" : "dark");
+      });
     }
 
+    // Run on every page load / transition (data-astro-rerun handles this)
     setTheme(getTheme());
     initToggle();
-
-    document.addEventListener("astro:page-load", () => {
-      setTheme(getTheme());
-      initToggle();
-    });
   })();
 </script>

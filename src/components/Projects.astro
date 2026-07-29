@@ -1,6 +1,6 @@
 ---
 import Section from "./Section.astro";
-import { Image } from "astro:assets";
+import OptimizedImage from "@components/OptimizedImage.astro";
 import type { TranslationKeys } from "@i18n";
 import type { ProjectItem } from "@types";
 
@@ -10,65 +10,106 @@ interface Props {
 }
 
 const { projects, t } = Astro.props;
+const total = projects.length;
 ---
 
 <Section text={t.projects.title} href="projects">
-  <div class="flex flex-col gap-6">
+  <div class="projects-stack relative pb-20">
     {projects.map(({ name, summary, image, linkPreview, linkSource, tags }, index) => {
-      const top = 98 + index * 40;
+      const isEven = index % 2 === 0;
+      const depth = total - index;
       return (
         <article
-          style={`top: ${top}px;`}
-          class="sticky mb-8 rounded-2xl border border-border bg-muted/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-muted-fg/30 hover:shadow-md"
+          class="project-card sticky overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
+          style={`top: calc(${index} * 1.5rem + 5rem); height: calc(100svh - 6rem); z-index: ${depth};`}
+          data-index={index}
         >
-          <div class="relative grid h-auto w-full grid-rows-2 overflow-hidden rounded-2xl bg-bg/90 sm:grid-cols-2 sm:grid-rows-1 md:h-[28rem]">
-            {/* Subtle pattern overlay */}
-            <div
-              class="pointer-events-none absolute inset-0 z-0 opacity-[0.03]"
-              style="background-image: url(/raja.png); background-size: 128px; background-repeat: repeat;"
-              aria-hidden="true"
-            />
+          {/* Chapter watermark */}
+          <span class="pointer-events-none absolute -right-2 -top-6 font-serif text-[8rem] font-bold leading-none text-fg/[0.03] select-none md:text-[12rem]">
+            {String(index + 1).padStart(2, "0")}
+          </span>
 
-            {/* Content */}
-            <div class="relative z-10 flex flex-col justify-center px-6 py-10 sm:px-8 sm:py-12">
-              <h3 class="mb-4 font-serif text-3xl font-medium text-fg">
+          {/* Corner fold */}
+          <div class="pointer-events-none absolute bottom-0 right-0 h-16 w-16 opacity-[0.06]" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="currentColor" class="text-fg">
+              <path d="M64 64H0V0L64 64Z" />
+            </svg>
+          </div>
+
+          <div class={`grid h-full grid-cols-1 md:grid-cols-12 ${isEven ? "" : "md:flex-row-reverse"}`}>
+            
+            {/* ─── Content Side ─── */}
+            <div class={`relative flex flex-col justify-center px-8 py-10 md:col-span-5 md:px-12 lg:px-16 ${isEven ? "md:order-1" : "md:order-2"}`}>
+              
+              {/* Specs bar */}
+              <div class="mb-6 flex flex-wrap items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-fg">
+                  <span class="text-fg-subtle">#{String(index + 1).padStart(2, "0")}</span>
+                  <span class="h-3 w-px bg-border"></span>
+                  <span>{total} Projects</span>
+                </span>
+
+                {linkPreview ? (
+                  <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-muted px-3 py-1 font-mono text-[11px] font-semibold text-accent">
+                    <span class="relative flex h-2 w-2">
+                      <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+                      <span class="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
+                    </span>
+                    Live
+                  </span>
+                ) : (
+                  <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 font-mono text-[11px] font-semibold text-muted-fg">
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                    Code Only
+                  </span>
+                )}
+
+                {tags && (
+                  <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-muted px-3 py-1 font-mono text-[11px] font-semibold text-primary">
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                    {tags.length} Tech{tags.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {/* Title */}
+              <h3 class="mb-4 font-serif text-3xl font-bold tracking-tight text-fg md:text-4xl lg:text-5xl">
                 {name}
               </h3>
 
-              <p class="mb-6 text-base leading-relaxed text-muted-fg">
+              {/* Summary */}
+              <p class="mb-8 text-base leading-relaxed text-muted-fg md:text-lg">
                 {summary}
               </p>
 
               {/* Tags */}
               {tags && tags.length > 0 && (
-                <div class="mb-6 flex flex-wrap gap-2">
+                <div class="mb-8 flex flex-wrap gap-2">
                   {tags.map((tag) => (
-                    <span class="rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-fg">
+                    <span class="tech-tag inline-flex items-center rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-fg transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary-muted hover:text-primary hover:shadow-[0_0_16px_-6px_var(--color-primary-muted)]">
                       {tag}
                     </span>
                   ))}
                 </div>
               )}
 
-              {/* Links */}
-              <div class="flex flex-wrap items-center gap-5">
+              {/* Actions */}
+              <div class="flex flex-wrap items-center gap-3">
                 {linkSource && (
                   <a
                     href={linkSource}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="group/link inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-primary"
+                    class="btn btn-secondary group inline-flex items-center gap-2"
                   >
-                    {t.projects.sourceCode}
-                    <svg
-                      class="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg class="h-4 w-4 transition-transform group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                     </svg>
+                    {t.projects.sourceCode}
                   </a>
                 )}
 
@@ -77,37 +118,151 @@ const { projects, t } = Astro.props;
                     href={linkPreview}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="group/link inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-primary"
+                    class="btn btn-primary group inline-flex items-center gap-2"
                   >
-                    {t.projects.viewProject}
-                    <svg
-                      class="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg class="h-4 w-4 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
+                    {t.projects.viewProject}
                   </a>
                 )}
               </div>
             </div>
 
-            {/* Image */}
-            <div class="relative z-10 flex items-end justify-end overflow-hidden sm:h-full">
-              <Image
-                class="h-full w-full object-cover object-top sm:h-[90%] sm:w-full sm:rounded-ss-2xl"
-                src={image}
-                alt={`${name} project preview`}
-                width={736}
-                height={483}
-                loading={index < 2 ? "eager" : "lazy"}
-              />
+            {/* ─── Media Side ─── */}
+            <div class={`relative overflow-hidden bg-muted/20 md:col-span-7 ${isEven ? "md:order-2" : "md:order-1"}`}>
+              
+              {/* Browser chrome */}
+              <div class="absolute left-0 right-0 top-0 z-20 flex h-12 items-center gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur-md">
+                <div class="flex gap-2">
+                  <span class="h-3 w-3 rounded-full bg-red-400/80 ring-1 ring-black/5"></span>
+                  <span class="h-3 w-3 rounded-full bg-amber-400/80 ring-1 ring-black/5"></span>
+                  <span class="h-3 w-3 rounded-full bg-emerald-400/80 ring-1 ring-black/5"></span>
+                </div>
+                <div class="mx-4 flex flex-1 items-center justify-center">
+                  <div class="flex w-full max-w-xs items-center gap-2 rounded-md bg-muted px-3 py-1.5 font-mono text-[11px] text-muted-fg">
+                    <svg class="h-3 w-3 shrink-0 text-fg-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 01-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span class="truncate">{linkPreview ? linkPreview.replace(/^https?:\/\//, "") : "localhost"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div class="h-full w-full pt-12">
+                {linkPreview ? (
+                  <iframe
+                    src={linkPreview}
+                    class="h-full w-full border-0 bg-bg"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    title={name}
+                    sandbox="allow-same-origin allow-scripts allow-popups"
+                  />
+                ) : (
+                  <div class="flex h-full items-center justify-center p-6">
+                    <div class="relative h-full w-full overflow-hidden rounded-lg shadow-2xl">
+                      <OptimizedImage
+                        class="h-full w-full object-cover object-top"
+                        src={image}
+                        alt={`${name} project preview`}
+                        width={900}
+                        height={600}
+                        priority={index < 2}
+                        loading={index < 2 ? "eager" : "lazy"}
+                      />
+                      {/* Image overlay gradient */}
+                      <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-surface/40 via-transparent to-transparent"></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom vignette */}
+              <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-surface/80 to-transparent" aria-hidden="true"></div>
             </div>
+          </div>
+
+          {/* Progress bar */}
+          <div class="absolute bottom-0 left-0 h-[3px] w-full bg-muted">
+            <div class="h-full bg-gradient-to-r from-primary to-accent transition-all duration-700" style={`width: ${((index + 1) / total) * 100}%`}></div>
           </div>
         </article>
       );
     })}
   </div>
+
+  {/* Scroll hint */}
+  <div class="flex flex-col items-center gap-3 pt-8 text-center">
+    <span class="font-mono text-xs uppercase tracking-[0.2em] text-fg-subtle">Scroll to explore</span>
+    <div class="flex h-10 w-6 items-start justify-center rounded-full border-2 border-fg-subtle/30 p-1">
+      <div class="h-2 w-1.5 animate-bounce rounded-full bg-fg-subtle/60"></div>
+    </div>
+  </div>
 </Section>
+
+<style>
+  /* Depth shadows — stronger as cards stack */
+  .project-card {
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.5s ease,
+                border-color 0.3s ease;
+  }
+
+  .project-card[data-index="0"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
+  .project-card[data-index="1"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2); }
+  .project-card[data-index="2"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+  .project-card[data-index="3"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
+
+  .dark .project-card[data-index="0"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03); }
+  .dark .project-card[data-index="1"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03); }
+  .dark .project-card[data-index="2"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03); }
+  .dark .project-card[data-index="3"] { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03); }
+
+  /* Entrance animation */
+  .project-card {
+    opacity: 0;
+    transform: translateY(4rem) scale(0.96);
+    animation: card-enter 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(var(--index) * 120ms);
+  }
+
+  @keyframes card-enter {
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Hover lift on the active (top) card */
+  .project-card:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  /* Tech tag spring animation */
+  .tech-tag {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Scroll hint fade out when scrolling */
+  .projects-stack:has(.project-card:nth-child(2):hover) ~ div,
+  .projects-stack:has(.project-card:nth-child(2)) ~ div {
+    /* This selector is just illustrative — the hint naturally scrolls away */
+  }
+</style>
+
+<script>
+  // Subtle parallax on images when scrolling through the stack
+  const cards = document.querySelectorAll('.project-card');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+      }
+    });
+  }, { threshold: 0.05 });
+
+  cards.forEach(card => observer.observe(card));
+</script>

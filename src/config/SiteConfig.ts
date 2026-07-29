@@ -1,8 +1,15 @@
-// src/config/SiteConfig.ts
 import type { SiteConfig, SiteContent, Locale } from "../types";
 
+import logo from "@images/logo.png";
+import saayAgent from "@images/saay-agent.png";
+import invoice from "@images/invoice.jpeg";
+import sunuflix from "@images/sunuflix.jpg";
+import homelab from "@images/homelab.avif";
+import profile from "@images/profile-large.jpg";
+import profileLarge from "@images/profile-large.jpg";
+
 const baseConfig: SiteConfig = {
-  title: "Thierno Sadou BARRY — Full Stack Engineer",
+  title: "TSB — Full Stack Engineer",
   author: "Thierno Sadou BARRY",
   description:
     "Senior Full Stack Software Engineer specializing in Java, Spring Boot, React, and AI-powered enterprise SaaS. Building scalable backend systems, cloud infrastructure, and intelligent web applications.",
@@ -22,6 +29,7 @@ const baseConfig: SiteConfig = {
     "Cloud Infrastructure",
   ],
   lang: "en",
+  siteLogo: logo,
   navLinks: [
     { text: "Experience", href: "#experience" },
     { text: "Projects", href: "#projects" },
@@ -71,7 +79,7 @@ const baseContent: SiteContent = {
         "Local-first AI coding assistant built with Rust and FastAPI. Features semantic code search via ChromaDB, autonomous task execution with Ollama LLMs, and a privacy-focused architecture that runs entirely on-device.",
       linkPreview: "/projects/saay-agent",
       linkSource: "https://github.com/tsb04",
-      image: "/projects/saay-agent.png",
+      image: saayAgent,
       tags: ["Rust", "FastAPI", "Ollama", "ChromaDB", "LLM", "RAG"],
     },
     {
@@ -80,7 +88,7 @@ const baseContent: SiteContent = {
         "End-to-end invoice management system integrating French PDP providers for electronic invoicing compliance. Features workflow automation, real-time document synchronization, and secure API gateways for B2B transactions.",
       linkPreview: "/projects/invoice-platform",
       linkSource: "https://github.com/tsb04",
-      image: "/projects/invoice.png",
+      image: invoice,
       tags: ["Spring Boot", "React", "PostgreSQL", "Docker", "PDP APIs", "E-invoicing"],
     },
     {
@@ -89,7 +97,7 @@ const baseContent: SiteContent = {
         "High-performance streaming platform built with Next.js and a microservices backend. Optimized for content delivery, user personalization, and horizontal scalability on cloud infrastructure.",
       linkPreview: "/projects/sunuflix",
       linkSource: "https://github.com/tsb04",
-      image: "/projects/sunuflix.png",
+      image: sunuflix,
       tags: ["Next.js", "Microservices", "Cloud-Native", "Streaming"],
     },
     {
@@ -98,7 +106,7 @@ const baseContent: SiteContent = {
         "Self-hosted development and production infrastructure running Docker, Traefik reverse proxy, PostgreSQL clusters, AI inference services (Ollama), and automated CI/CD pipelines on bare metal.",
       linkPreview: "/projects/homelab",
       linkSource: "https://github.com/tsb04",
-      image: "/projects/homelab.png",
+      image: homelab,
       tags: ["Docker", "Traefik", "PostgreSQL", "Self-Hosting", "DevOps", "Homelab"],
     },
   ],
@@ -110,7 +118,7 @@ My core stack is Java, Spring Boot, React, TypeScript, and PostgreSQL—backed b
 Recently, I've been deep in France's e-invoicing ecosystem, designing compliant workflow engines and secure API integrations. I'm also actively exploring local AI infrastructure—running LLMs with Ollama, building RAG pipelines with vector databases, and experimenting with autonomous agent architectures.
 
 Outside of client work, I maintain a homelab for continuous experimentation with distributed systems, DevOps tooling, and emerging backend technologies.`,
-    image: "/profile-large.jpg",
+    image: profile,
   },
   skills: {
     backend: ["Java", "Spring Boot", "FastAPI", "REST API Design", "GraphQL", "JPA/Hibernate", "OAuth2/JWT"],
@@ -129,7 +137,7 @@ const frContent: SiteContent = {
     specialty: "Ingénieur Full Stack • Java • Spring Boot • React • IA",
     summary:
       "Je conçois et livre des logiciels enterprise—backends scalables, systèmes intégrés à l'IA, et infrastructure cloud-native. Actuellement, je construis des plateformes SaaS financières et explore l'infrastructure IA locale avec les LLMs et les agents autonomes.",
-    availability: "Disponible pour missions freelance & CDI",
+    availability: "Disponible pour missions freelance",
   },
   experience: [
     {
@@ -152,7 +160,7 @@ Mon stack principal est Java, Spring Boot, React, TypeScript et PostgreSQL—sou
 Récemment, j'ai plongé dans l'écosystème de la facturation électronique française, concevant des moteurs de workflow conformes et des intégrations API sécurisées. J'explore aussi activement l'infrastructure IA locale—exécution de LLMs avec Ollama, construction de pipelines RAG avec des bases de données vectorielles, et expérimentation avec des architectures d'agents autonomes.
 
 En dehors du travail client, je maintiens un homelab pour l'expérimentation continue avec les systèmes distribués, les outils DevOps et les technologies backend émergentes.`,
-    image: "/profile-large.jpg",
+    image: profileLarge,
   },
 };
 
@@ -162,7 +170,7 @@ export function getSiteConfig(locale: Locale = "en"): SiteConfig {
     lang: locale,
     title:
       locale === "fr"
-        ? "Thierno Sadou BARRY — Ingénieur Full Stack"
+        ? "TSB — Ingénieur Full Stack"
         : baseConfig.title,
     description:
       locale === "fr"
