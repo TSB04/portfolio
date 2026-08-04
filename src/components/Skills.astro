@@ -5,7 +5,7 @@ import type { Skills as SkillsContent, TranslationKeys } from "@types";
 interface Props { skills: SkillsContent; t: TranslationKeys; label: string; startIndex: number; total: number }
 const { skills, label, startIndex, total } = Astro.props;
 
-const iconModules = import.meta.glob("../assets/images/skills/*.svg", { eager: true, import: "default" });
+const iconModules = import.meta.glob("../assets/images/skills/*.svg", { eager: true, query: "?url", import: "default" });
 const icons = iconModules as Record<string, string>;
 const iconBySkill: Record<string, string> = {
   "Java": "java", "Spring Boot": "springboot", "NestJS": "nestjs", "FastAPI": "fastapi", "Node.js": "nodedotjs", "GraphQL": "graphql",
