@@ -229,6 +229,17 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
             ease: "power3.out",
             scrollTrigger: { trigger: page, start: "top 76%", toggleActions: "play none none reverse" },
           });
+          const revealTargets = page.querySelectorAll<HTMLElement>(".page-heading, .timeline-entry, .project-card, .skill-card, .portrait");
+          if (revealTargets.length) {
+            gsap.from(revealTargets, {
+              y: 20,
+              opacity: 0,
+              duration: 0.45,
+              stagger: 0.07,
+              ease: "power2.out",
+              scrollTrigger: { trigger: page, start: "top 68%", toggleActions: "play none none reverse" },
+            });
+          }
         }
       });
     });

@@ -2,19 +2,25 @@
 import CarnetPage from "./CarnetPage.astro";
 import type { Skills as SkillsContent, TranslationKeys } from "@types";
 
-interface Props { skills: SkillsContent; t: TranslationKeys; label: string; index: number; total: number }
-const { skills, t, label, index, total } = Astro.props;
-const groups = [
-  ["Backend", skills.backend], ["Frontend", skills.frontend], ["Database", skills.database],
-  ["DevOps", skills.devops], ["AI", skills.ai],
-] as const;
+interface Props { skills: SkillsContent; t: TranslationKeys; label: string; startIndex: number; total: number }
+const { skills, label, startIndex, total } = Astro.props;
+
+const iconModules = import.meta.glob("../assets/images/skills/*.svg", { eager: true, import: "default" });
+const icons = iconModules as Record<string, string>;
+const iconBySkill: Record<string, string> = {
+  "Java": "java", "Spring Boot": "springboot", "NestJS": "nestjs", "FastAPI": "fastapi", "Node.js": "nodedotjs", "GraphQL": "graphql",
+  "React": "react", "Next.js": "nextdotjs", "Angular": "angular", "TypeScript": "typescript", "JavaScript": "javascript", "Tailwind CSS": "tailwindcss", "Astro": "astro", "HTML/CSS": "html5",
+  "MySQL": "mysql", "PostgreSQL": "postgresql", "MongoDB": "mongodb", "Redis": "redis",
+  "Docker": "docker", "Traefik": "traefik", "Linux": "linux", "GitHub Actions": "githubactions", "AWS": "amazonwebservices", "Azure": "microsoftazure",
+  "Ollama": "ollama", "LLM Integration": "openai",
+};
+const pages = [
+  { title: "Backend engineering", note: "APIs, services and resilient system design.", items: skills.backend },
+  { title: "Frontend craft", note: "Accessible interfaces and fast product experiences.", items: skills.frontend },
+  { title: "Data & storage", note: "Reliable schemas, queries and information retrieval.", items: skills.database },
+  { title: "Platform & delivery", note: "Infrastructure, automation and production operations.", items: skills.devops },
+  { title: "Applied AI", note: "Local models, retrieval and agentic workflows.", items: skills.ai },
+];
 ---
 
-<CarnetPage id="skills" {index} {total} label={label} texture="diagonal">
-  <div class="page-spread">
-    <div><h2 id="skills-title">{t.skills.title}</h2><p>{t.skills.intro}</p></div>
-    <div class="skill-groups">
-      {groups.map(([name, items]) => <section class="skill-group"><h3>{name}</h3><div>{items.map((item) => <span class="badge">{item}</span>)}</div></section>)}
-    </div>
-  </div>
-</CarnetPage>
+{pages.map((page, pageIndex) => <CarnetPage id={pageIndex === 0 ? "skills" : `skills-${pageIndex + 1}`} index={startIndex + pageIndex} total={total} label={`${label} · ${page.title}`} texture="diagonal"><div class="skill-page-header"><div><h2>{page.title}</h2><p>{page.note}</p></div><span class="skill-page-count">{String(pageIndex + 1).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}</span></div><div class="skill-card-grid">{page.items.map((skill) => { const slug = iconBySkill[skill]; const icon = slug ? icons[`../assets/images/skills/${slug}.svg`] : undefined; return <article class="skill-card">{icon ? <img src={icon} alt="" width="44" height="44" loading="lazy" /> : <span class="skill-monogram" aria-hidden="true">{skill.slice(0, 2)}</span>}<div><h3>{skill}</h3><p>{slug ? "Core technology" : "Engineering practice"}</p></div></article>; })}</div></CarnetPage>)}
