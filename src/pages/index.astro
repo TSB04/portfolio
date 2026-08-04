@@ -1,9 +1,5 @@
 ---
 // Redirection vers la langue préférée de l'utilisateur
 // ou vers la locale par défaut
-const preferredLocale = Astro.preferredLocale;
-const defaultLocale = "en";
-const target = preferredLocale?.startsWith("fr") ? "/fr" : `/${defaultLocale}`;
-
-return Astro.redirect(target);
+return Astro.redirect("/en");
 ---

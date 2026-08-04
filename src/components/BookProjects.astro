@@ -1,0 +1,8 @@
+---
+import CarnetPage from "./CarnetPage.astro";
+import OptimizedImage from "./OptimizedImage.astro";
+import type { ProjectItem, TranslationKeys } from "@types";
+interface Props { projects: ProjectItem[]; t: TranslationKeys; label: string }
+const { projects, t, label } = Astro.props;
+---
+<CarnetPage id="projects" index={2} label={label} texture="grid"><div class="page-heading"><h2 id="projects-title">{t.projects.title}</h2><p>A few production-minded builds.</p></div><div class="project-grid">{projects.slice(0, 4).map((project) => <article class="project-card"><OptimizedImage src={project.image} alt={project.name} width={480} height={220} /><div><h3>{project.name}</h3><p>{project.summary}</p><div class="project-tags">{project.tags.slice(0, 4).map((tag) => <span class="badge">{tag}</span>)}</div>{project.linkPreview && <a href={project.linkPreview} class="project-link" target={project.linkPreview.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">{t.projects.viewProject} →</a>}</div></article>)}</div></CarnetPage>

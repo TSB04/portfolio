@@ -4,6 +4,7 @@ export const fr: TranslationKeys = {
   nav: {
     experience: "Expérience",
     projects: "Projets",
+    skills: "Compétences",
     about: "À propos",
     contact: "Contact",
   },
@@ -11,6 +12,7 @@ export const fr: TranslationKeys = {
     availability: "Disponible pour missions freelance",
     ctaContact: "Me Contacter",
     ctaProjects: "Voir les Projets",
+    ctaNotebook: "Ouvrir le carnet",
     role: "Ingénieur Full Stack",
 
   },
@@ -27,6 +29,7 @@ export const fr: TranslationKeys = {
   about: {
     title: "À propos",
   },
+  skills: { title: "Compétences", intro: "Les outils sur lesquels je m'appuie." },
   contact: {
     title: "Contact",
     emailMe: "M'envoyer un email",
@@ -36,6 +39,8 @@ export const fr: TranslationKeys = {
   footer: {
     builtWith: "Construit avec",
     rights: "Tous droits réservés.",
+    backToTop: "Retour à la couverture",
+    tagline: "Conçu comme un carnet — page après page.",
   },
   theme: {
     light: "Clair",

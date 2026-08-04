@@ -4,6 +4,7 @@ export const en: TranslationKeys = {
   nav: {
     experience: "Experience",
     projects: "Projects",
+    skills: "Skills",
     about: "About",
     contact: "Contact",
   },
@@ -11,6 +12,7 @@ export const en: TranslationKeys = {
     availability: "Open to freelance & full-time opportunities",
     ctaContact: "Get in Touch",
     ctaProjects: "View Projects",
+    ctaNotebook: "Open the notebook",
       role: "Full Stack Engineer",
   },
   experiences: {
@@ -26,6 +28,7 @@ export const en: TranslationKeys = {
   about: {
     title: "About",
   },
+  skills: { title: "Skills", intro: "The toolbox I reach for." },
   contact: {
     title: "Contact",
     emailMe: "Email Me",
@@ -35,6 +38,8 @@ export const en: TranslationKeys = {
   footer: {
     builtWith: "Built with",
     rights: "All rights reserved.",
+    backToTop: "Back to the cover",
+    tagline: "Designed and built like a notebook — one page at a time.",
   },
   theme: {
     light: "Light",

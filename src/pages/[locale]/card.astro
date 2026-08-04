@@ -2,7 +2,11 @@
 //src/components/Card.astro
 const {name, position, aboutMe, linkedin, github, cvLink, profileImage } = Astro.props;
 
-import '../styles/card.css';
+import '../../styles/card.css';
+
+export function getStaticPaths() {
+  return [{ params: { locale: "en" } }, { params: { locale: "fr" } }];
+}
 ---
 
 <div class="container">

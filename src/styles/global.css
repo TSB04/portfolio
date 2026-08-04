@@ -7,7 +7,8 @@
 
 /* ═══════════════════════════════════════════════════════════════
    THEME TOKENS  →  Semantic aliases only.
-   Values live in :root / .dark so themes can override them.
+   Values live in :root (dark, the default theme) and
+   :root:not(.dark) (light, the readability fallback).
    ═══════════════════════════════════════════════════════════════ */
 @theme inline {
   /* Typography */
@@ -29,6 +30,10 @@
   --color-fg-muted:        var(--fg-muted);
   --color-fg-subtle:       var(--fg-subtle);
   --color-fg-inverse:      var(--fg-inverse);
+
+  /* Legacy aliases used across components */
+  --color-muted:           var(--elevated);
+  --color-muted-fg:        var(--fg-muted);
 
   /* Borders & focus */
   --color-border:          var(--border);
@@ -59,7 +64,7 @@
   --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
   --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
   --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.04);
-  --shadow-glow: 0 0 20px -5px var(--primary-muted);
+  --shadow-glow: 0 0 24px -6px var(--primary);
   --shadow-inset: inset 0 2px 4px 0 rgb(0 0 0 / 0.04);
 
   /* Animations */
@@ -70,95 +75,100 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   LIGHT MODE  (default)
-   Warm stone neutrals + rich violet + fresh teal.
+   DARK MODE (DEFAULT THEME)
+   Midnight ink + luminous indigo + cyan glow.
    ═══════════════════════════════════════════════════════════════ */
-
-   
 :root {
   --header-height: 5rem;
+  --paper-line: color-mix(in oklab, var(--fg) 6%, transparent);
+  --page-crease: color-mix(in oklab, var(--fg) 10%, transparent);
+  --cover-bg: var(--elevated);
+  --tab-bg: var(--surface);
+  --tab-active-bg: var(--fg);
+  --page-turn-duration: 700ms;
+  --page-turn-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Backgrounds — warm, layered depth */
-  --bg:            #fafaf9;   /* stone-50: warm white page */
-  --surface:       #ffffff;   /* pure white cards */
-  --surface-hover: #f5f5f4;   /* stone-100 card hover */
-  --elevated:      #f5f5f4;   /* stone-100 popovers */
-  --elevated-hover:#e7e5e4;   /* stone-200 elevated hover */
+  /* Backgrounds — deep midnight layers */
+  --bg:            #060a13;
+  --surface:       #0c1220;
+  --surface-hover: #131b2e;
+  --elevated:      #111a2c;
+  --elevated-hover:#182338;
 
-  /* Text — stone scale for warmth */
-  --fg:            #1c1917;   /* stone-900 headings */
-  --fg-muted:      #57534e;   /* stone-600 body */
-  --fg-subtle:     #a8a29e;   /* stone-400 captions */
-  --fg-inverse:    #fafaf9;   /* stone-50 text on dark buttons */
+  /* Text — cool, high-contrast on dark */
+  --fg:            #e8edf6;
+  --fg-muted:      #93a1b8;
+  --fg-subtle:     #5c6b84;
+  --fg-inverse:    #060a13;
 
   /* Borders */
-  --border:        #e7e5e4;   /* stone-200 dividers */
-  --border-strong: #d6d3d1;   /* stone-300 inputs */
-  --ring:          #7c3aed;   /* violet-600 focus ring */
-  --ring-offset:   #ffffff;   /* focus ring offset */
+  --border:        #1a2438;
+  --border-strong: #2a3852;
+  --ring:          #818cf8;
+  --ring-offset:   #060a13;
 
-  /* Brand — Violet (creative, modern) */
-  --primary:       #7c3aed;   /* violet-600 */
-  --primary-hover: #6d28d9;   /* violet-700 */
-  --primary-muted: #ede9fe;   /* violet-100 soft backgrounds */
-  --primary-fg:    #ffffff;   /* text on primary buttons */
+  /* Brand — luminous indigo that glows on dark */
+  --primary:       #818cf8;
+  --primary-hover: #a5b4fc;
+  --primary-muted: #1b1f3d;
+  --primary-fg:    #0d1024;
 
-  /* Accent — Teal (fresh, tech-forward) */
-  --accent:        #0d9488;   /* teal-600 */
-  --accent-hover:  #0f766e;   /* teal-700 */
-  --accent-muted:  #ccfbf1;   /* teal-100 soft backgrounds */
+  /* Accent — cyan glow */
+  --accent:        #22d3ee;
+  --accent-hover:  #67e8f9;
+  --accent-muted:  #0c2e3a;
 
   /* Status */
-  --success:       #059669;   /* emerald-600 */
-  --success-muted: #d1fae5;   /* emerald-100 */
-  --warning:       #d97706;   /* amber-600 */
-  --warning-muted: #fef3c7;   /* amber-100 */
-  --error:         #dc2626;   /* red-600 */
-  --error-muted:   #fee2e2;   /* red-100 */
+  --success:       #34d399;
+  --success-muted: #0a3b2e;
+  --warning:       #fbbf24;
+  --warning-muted: #3d2b08;
+  --error:         #fb7185;
+  --error-muted:   #43151f;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DARK MODE  →  Deep space slate + glowing violet + bright teal
+   LIGHT MODE  →  Readability fallback only.
+   Clean neutral surfaces + deep indigo for contrast.
    ═══════════════════════════════════════════════════════════════ */
-.dark,
-[data-theme="dark"] {
-  /* Backgrounds — deep space */
-  --bg:            #030712;   /* gray-950 near black */
-  --surface:       #0f172a;   /* slate-900 cards */
-  --surface-hover: #1e293b;   /* slate-800 card hover */
-  --elevated:      #1e293b;   /* slate-800 popovers */
-  --elevated-hover:#334155;   /* slate-700 elevated hover */
+:root:not(.dark) {
+  /* Backgrounds */
+  --bg:            #fafbfc;
+  --surface:       #ffffff;
+  --surface-hover: #f3f5f8;
+  --elevated:      #f3f5f8;
+  --elevated-hover:#e7ebf1;
 
-  /* Text — cool slate for dark mode */
-  --fg:            #f8fafc;   /* slate-50 bright white */
-  --fg-muted:      #94a3b8;   /* slate-400 body */
-  --fg-subtle:     #64748b;   /* slate-500 captions */
-  --fg-inverse:    #0f172a;   /* slate-900 text on light buttons */
+  /* Text */
+  --fg:            #161a23;
+  --fg-muted:      #4c5566;
+  --fg-subtle:     #8a93a5;
+  --fg-inverse:    #ffffff;
 
   /* Borders */
-  --border:        #1e293b;   /* slate-800 subtle dividers */
-  --border-strong: #334155;   /* slate-700 inputs */
-  --ring:          #a78bfa;   /* violet-400 glowing focus */
-  --ring-offset:   #030712;   /* focus ring offset */
+  --border:        #e3e7ee;
+  --border-strong: #cbd2dd;
+  --ring:          #4f46e5;
+  --ring-offset:   #ffffff;
 
-  /* Brand — more luminous in dark */
-  --primary:       #8b5cf6;   /* violet-500 vibrant */
-  --primary-hover: #a78bfa;   /* violet-400 hover glow */
-  --primary-muted: #2e1065;   /* violet-950 subtle bg */
+  /* Brand — deep indigo for AA contrast on white */
+  --primary:       #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-muted: #e5e7fb;
   --primary-fg:    #ffffff;
 
-  /* Accent — brighter in dark */
-  --accent:        #14b8a6;   /* teal-500 */
-  --accent-hover:  #2dd4bf;   /* teal-400 */
-  --accent-muted:  #134e4a;   /* teal-900 subtle bg */
+  /* Accent */
+  --accent:        #0891b2;
+  --accent-hover:  #0e7490;
+  --accent-muted:  #cffafe;
 
-  /* Status — brighter in dark */
-  --success:       #34d399;   /* emerald-400 */
-  --success-muted: #064e3b;   /* emerald-900 bg */
-  --warning:       #fbbf24;   /* amber-400 */
-  --warning-muted: #78350f;   /* amber-900 bg */
-  --error:         #f87171;   /* red-400 */
-  --error-muted:   #7f1d1d;   /* red-900 bg */
+  /* Status */
+  --success:       #059669;
+  --success-muted: #d1fae5;
+  --warning:       #d97706;
+  --warning-muted: #fef3c7;
+  --error:         #e11d48;
+  --error-muted:   #ffe4e6;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -296,6 +306,11 @@
   100% { background-position: 0% 50%; }
 }
 
+@keyframes scene-drift {
+  from { transform: translate3d(-4%, -3%, 0) scale(1); }
+  to   { transform: translate3d(4%, 3%, 0) scale(1.08); }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    UTILITIES  →  Reusable modern patterns
    ═══════════════════════════════════════════════════════════════ */
@@ -328,6 +343,48 @@
     animation: gradient-shift 8s ease infinite;
   }
 
+  /* Ambient page backdrop — base color + drifting brand glows + faint grid.
+     Sits behind all content (z-index: -1) so sections stay transparent. */
+  .bg-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background-color: var(--color-bg);
+  }
+  .bg-scene::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background:
+      radial-gradient(42rem 42rem at 12% 8%,
+        color-mix(in oklab, var(--color-primary) 16%, transparent),
+        transparent 62%),
+      radial-gradient(38rem 38rem at 88% 92%,
+        color-mix(in oklab, var(--color-accent) 12%, transparent),
+        transparent 62%);
+    animation: scene-drift 26s ease-in-out infinite alternate;
+  }
+  .bg-scene::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--color-border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    mask-image: radial-gradient(ellipse 85% 65% at 50% 40%, black, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 40%, black, transparent 78%);
+    opacity: 0.55;
+  }
+  :root:not(.dark) .bg-scene::before {
+    opacity: 0.5;
+  }
+  :root:not(.dark) .bg-scene::after {
+    opacity: 0.35;
+  }
+
   /* Glassmorphism card */
   .glass {
     background: color-mix(in oklab, var(--color-surface) 70%, transparent);
@@ -352,10 +409,10 @@
     border-color: var(--color-border-strong);
   }
 
-  /* Section reveal animation */
-  .reveal {
-    opacity: 0;
-    transform: translateY(2rem);
+  /* Section reveal animation (paired with the observer in Layout) */
+.reveal {
+    opacity: 1;
+    transform: none;
     transition:
       opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
       transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
@@ -365,7 +422,7 @@
     transform: translateY(0);
   }
 
-  /* Stagger children */
+  /* Stagger children entrance */
   .stagger > * {
     opacity: 0;
     transform: translateY(1rem);
@@ -398,7 +455,7 @@
   }
   .btn-primary:hover {
     background-color: var(--color-primary-hover);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 0 24px -6px var(--color-primary);
     transform: translateY(-1px);
   }
   .btn-secondary {
@@ -409,6 +466,7 @@
   .btn-secondary:hover {
     background-color: var(--color-surface-hover);
     border-color: var(--color-border-strong);
+    transform: translateY(-1px);
   }
   .btn-ghost {
     background-color: transparent;
@@ -469,30 +527,8 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PRINT  →  Clean resume-friendly output
-   ═══════════════════════════════════════════════════════════════ */
-@media print {
-  body {
-    background: white !important;
-    color: black !important;
-  }
-  header, footer, button, .no-print {
-    display: none !important;
-  }
-  a {
-    color: black !important;
-    text-decoration: underline;
-  }
-  section {
-    page-break-inside: avoid;
-  }
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
    BOOK / PAGE LAYOUT
    ═══════════════════════════════════════════════════════════════ */
-
 .page {
   /* Each section = exactly one page (viewport minus sticky header) */
   min-height: calc(100svh - var(--header-height));
@@ -501,18 +537,52 @@
 
   /* Page separation */
   border-bottom: 1px solid var(--color-border);
-
-  /* Subtle top inner shadow = stacked pages illusion */
-  box-shadow: inset 0 8px 24px -12px rgba(0, 0, 0, 0.06);
 }
 
-.dark .page {
-  box-shadow: inset 0 8px 24px -12px rgba(0, 0, 0, 0.35);
-}
+/* Carnet redesign: static, readable document first; JS only enhances transitions. */
+.front-cover, .back-cover, .carnet-page { position: relative; min-height: 100svh; scroll-margin-top: 1rem; }
+.front-cover, .back-cover { display: grid; place-items: center; overflow: hidden; background: var(--cover-bg); }
+.front-cover::before, .back-cover::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 82% 18%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 35%), radial-gradient(circle at 18% 82%, color-mix(in oklab, var(--accent) 15%, transparent), transparent 30%); }
+.cover-content { position: relative; z-index: 1; width: min(100% - 3rem, 66rem); padding: 8rem 0 5rem; }
+.cover-content h1 { max-width: 13ch; margin: 1rem 0; font-size: clamp(3.5rem, 10vw, 8rem); line-height: .92; }
+.cover-specialty { max-width: 50rem; color: var(--primary); font-size: clamp(1rem, 2vw, 1.35rem); font-weight: 600; }
+.cover-message { max-width: 48rem; font-size: 1.1rem; }
+.cover-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 2rem; }
+.cover-meta { color: var(--fg-muted); font-size: .875rem; }
+.cover-availability { color: var(--success); background: var(--success-muted); }
+.carnet-page { isolation: isolate; display: grid; align-items: stretch; overflow: clip; background: var(--page-bg, var(--surface)); border-bottom: 1px solid var(--border); }
+.carnet-page::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .8; background: var(--page-texture); }
+.carnet-page[data-texture="lines"] { --page-texture: repeating-linear-gradient(to bottom, transparent 0 31px, var(--paper-line) 32px); }
+.carnet-page[data-texture="grid"] { --page-texture: linear-gradient(var(--paper-line) 1px, transparent 1px), linear-gradient(90deg, var(--paper-line) 1px, transparent 1px); background-size: 32px 32px; }
+.carnet-page[data-texture="diagonal"] { --page-texture: repeating-linear-gradient(135deg, transparent 0 15px, var(--paper-line) 16px); }
+.page-inner { position: relative; display: grid; min-height: 100svh; width: min(100% - 3rem, 72rem); margin: 0 auto; padding: 7rem 0 4rem; }
+.page-inner::after { content: ""; position: absolute; top: 1.5rem; bottom: 1.5rem; left: 50%; width: 1px; background: linear-gradient(180deg, transparent, var(--page-crease), transparent); }
+.page-content { min-width: 0; }
+.page-eyebrow { margin: 0 0 .75rem; color: var(--fg-subtle); font-family: ui-monospace, monospace; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.page-content h2, .page-heading h2 { margin: 0 0 1rem; font-size: clamp(2.4rem, 5vw, 4.5rem); }
+.page-number { position: absolute; right: 1.5rem; bottom: 1.5rem; color: var(--fg-subtle); font: 700 .7rem ui-monospace, monospace; letter-spacing: .12em; }
+.page-spread { display: grid; gap: 3rem; align-items: start; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+.timeline-list { display: grid; gap: 1rem; }
+.timeline-entry { padding: 1.2rem; border-left: 2px solid var(--primary); background: color-mix(in oklab, var(--surface) 84%, transparent); box-shadow: var(--shadow-sm); }
+.timeline-entry h3, .project-card h3, .skill-group h3 { margin: .15rem 0; font-size: 1.2rem; }
+.timeline-entry ul { padding-left: 1rem; color: var(--fg-muted); font-size: .9rem; }
+.timeline-entry .badge, .project-tags .badge, .skill-group .badge { margin: .35rem .35rem 0 0; }
+.role { margin: .25rem 0 .75rem; font-size: .85rem; }
+.project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.project-card { overflow: hidden; background: color-mix(in oklab, var(--surface) 88%, transparent); border: 1px solid var(--border); border-radius: .75rem; }
+.project-card img { display: block; width: 100%; height: 8rem; object-fit: cover; border-radius: 0; }
+.project-card > div { padding: 1rem; }.project-card p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .85rem; }.project-link { display: inline-block; margin-top: .8rem; font-size: .85rem; font-weight: 700; }
+.skill-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }.skill-group { padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.about-spread p { margin: 0 0 1rem; }.portrait { padding: .75rem .75rem 2.5rem; background: var(--surface); box-shadow: .5rem .5rem 0 color-mix(in oklab, var(--primary) 16%, transparent); transform: rotate(-2deg); }.portrait img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.back-cover footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }.back-cover footer ul { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0; list-style: none; }.back-cover footer p { font-size: .75rem; }
+.tab-nav { position: fixed; z-index: 40; top: 50%; right: 0; display: grid; gap: .35rem; transform: translateY(-50%); }.book-tab { min-width: 2rem; padding: .65rem .5rem; color: var(--fg-muted); background: var(--tab-bg); border: 1px solid var(--border); border-right: 0; border-radius: .4rem 0 0 .4rem; font: 700 .75rem ui-monospace, monospace; text-align: center; }.book-tab.is-active { padding-left: 1rem; color: var(--fg-inverse); background: var(--tab-active-bg); }.book-tab:hover { color: var(--primary); }
+body[data-book-state="cover"] .tab-nav { opacity: 0; pointer-events: none; transform: translate(1rem, -50%); } body[data-book-state="page"] #site-header { transform: translateY(-110%); }
+@media (min-width: 1024px) { .carnet-page::after { content: ""; position: absolute; z-index: 1; top: 0; bottom: 0; left: 1rem; width: 1rem; pointer-events: none; opacity: .5; background: radial-gradient(circle at 50% 12px, var(--border) 0 5px, transparent 5.5px) 0 0 / 100% 48px repeat-y; } }
+@media (max-width: 767px) { .page-inner { width: min(100% - 2rem, 72rem); padding: 6rem 0 4rem; }.page-inner::after { display: none; }.page-spread { grid-template-columns: 1fr; gap: 2rem; }.project-grid { grid-template-columns: 1fr; }.skill-groups { grid-template-columns: 1fr; }.tab-nav { top: auto; right: 50%; bottom: .75rem; grid-auto-flow: column; transform: translateX(50%); }.book-tab { min-width: 1.75rem; border: 1px solid var(--border); border-radius: 999px; }.book-tab.is-active { padding-left: .5rem; }.book-tab:not(.is-active) { font-size: 0; }.book-tab:not(.is-active)::after { content: ""; display: block; width: .35rem; height: .35rem; border-radius: 50%; background: currentColor; } }
 
 /* Page fold effect — bottom-right corner */
 .page::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   right: 0;
@@ -524,12 +594,7 @@
   border-bottom-right-radius: 0.75rem;
 }
 
-/* First page — no top shadow needed */
-.page:first-of-type {
-  box-shadow: none;
-}
-
-/* Active page hint: slightly stronger border when snapped (optional) */
+/* Active page hint: slightly stronger border when snapped */
 .page:focus-within {
   border-color: var(--color-border-strong);
 }
@@ -543,41 +608,25 @@
   }
 }
 
-/* Ensure card utility exists */
-.card {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-}
-
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-}
-.btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-fg);
-  box-shadow: var(--shadow-sm);
-}
-.btn-primary:hover {
-  background-color: var(--color-primary-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-.btn-secondary {
-  background-color: var(--color-surface);
-  color: var(--color-fg);
-  border: 1px solid var(--color-border);
-}
-.btn-secondary:hover {
-  background-color: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+/* ═══════════════════════════════════════════════════════════════
+   PRINT  →  Clean resume-friendly output
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .bg-scene {
+    display: none !important;
+  }
+  header, footer, button, .no-print {
+    display: none !important;
+  }
+  a {
+    color: black !important;
+    text-decoration: underline;
+  }
+  section {
+    page-break-inside: avoid;
+  }
 }

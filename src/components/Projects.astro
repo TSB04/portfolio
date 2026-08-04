@@ -259,7 +259,7 @@ const total = projects.length;
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
+        (entry.target as HTMLElement).style.opacity = '1';
       }
     });
   }, { threshold: 0.05 });

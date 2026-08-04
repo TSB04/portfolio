@@ -1,0 +1,20 @@
+---
+import CarnetPage from "./CarnetPage.astro";
+import type { Skills as SkillsContent, TranslationKeys } from "@types";
+
+interface Props { skills: SkillsContent; t: TranslationKeys; label: string }
+const { skills, t, label } = Astro.props;
+const groups = [
+  ["Backend", skills.backend], ["Frontend", skills.frontend], ["Database", skills.database],
+  ["DevOps", skills.devops], ["AI", skills.ai],
+] as const;
+---
+
+<CarnetPage id="skills" index={3} label={label} texture="diagonal">
+  <div class="page-spread">
+    <div><h2 id="skills-title">{t.skills.title}</h2><p>{t.skills.intro}</p></div>
+    <div class="skill-groups">
+      {groups.map(([name, items]) => <section class="skill-group"><h3>{name}</h3><div>{items.map((item) => <span class="badge">{item}</span>)}</div></section>)}
+    </div>
+  </div>
+</CarnetPage>

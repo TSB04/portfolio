@@ -1,9 +1,11 @@
 ---
 import Layout from "@layouts/Layout.astro";
-import Hero from "@components/Hero.astro";
-import Experience from "@components/Experience.astro";
-import Projects from "@components/Projects.astro";
-import About from "@components/About.astro";
+import FrontCover from "@components/FrontCover.astro";
+import BookExperience from "@components/BookExperience.astro";
+import BookProjects from "@components/BookProjects.astro";
+import Skills from "@components/Skills.astro";
+import BookAbout from "@components/BookAbout.astro";
+import BackCover from "@components/BackCover.astro";
 import { getSiteConfig, getSiteContent } from "@config";
 import { getTranslation, isValidLocale, defaultLocale, type Locale } from "@i18n";
 
@@ -26,8 +28,10 @@ const pageTitle = `${config.author} — ${t.hero.role || "Full Stack Engineer"}`
 ---
 
 <Layout title={pageTitle} description={config.description} locale={locale}>
-  <Hero {...content.hero} t={t} />
-  <Experience experience={content.experience} t={t} />
-  <Projects projects={content.projects} t={t} />
-  <About {...content.about} name={content.hero.name} t={t} />
+  <FrontCover {...content.hero} t={t} />
+  <BookExperience experience={content.experience} t={t} label={content.sections[0].eyebrow} />
+  <BookProjects projects={content.projects} t={t} label={content.sections[1].eyebrow} />
+  <Skills skills={content.skills} t={t} label={content.sections[2].eyebrow} />
+  <BookAbout {...content.about} name={content.hero.name} t={t} label={content.sections[3].eyebrow} />
+  <BackCover contact={content.contact} author={config.author} socialLinks={config.socialLinks} t={t} />
 </Layout>

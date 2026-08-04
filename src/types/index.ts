@@ -1,5 +1,3 @@
-// src/types.ts
-
 export interface NavLink {
   text: string;
   href: string;
@@ -8,6 +6,23 @@ export interface NavLink {
 export interface SocialLink {
   text: string;
   href: string;
+}
+
+export interface EducationItem {
+  institution: string;
+  degree: string;
+  field: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  highlights: string[];
+}
+
+export interface CertificationItem {
+  name: string;
+  issuer: string;
+  year: string;
+  description: string;
 }
 
 export interface ExperienceItem {
@@ -32,9 +47,23 @@ export interface ProjectItem {
 export interface Skills {
   backend: string[];
   frontend: string[];
+  mobile: string[];
   database: string[];
   devops: string[];
   ai: string[];
+  other: string[];
+  languages?: LangItem[];
+}
+
+export interface LangItem {
+  name: string;
+  level: string;
+}
+
+export interface AwardItem {
+  title: string;
+  year: string;
+  description: string;
 }
 
 export interface HeroContent {
@@ -44,6 +73,23 @@ export interface HeroContent {
   email: string;
   availability: string;
   location: string;
+  ctaLabel?: string;
+  ctaTarget?: string;
+}
+
+export interface BookSection {
+  id: "experience" | "projects" | "skills" | "about" | "contact";
+  tab: string;
+  eyebrow: string;
+  title: string;
+}
+
+export interface ContactContent {
+  heading: string;
+  message: string;
+  email: string;
+  location: string;
+  availability: string;
 }
 
 export interface AboutContent {
@@ -51,12 +97,30 @@ export interface AboutContent {
   image: ImageMetadata;
 }
 
+/** Legacy component compatibility; active components use the content types above. */
+export type HeroProps = HeroContent;
+export type AboutProps = AboutContent;
+
+export interface PhilosophyContent {
+  quote: string;
+  vision: string;
+  principles: string[];
+}
+
 export interface SiteContent {
   hero: HeroContent;
+  education: EducationItem[];
+  certifications: CertificationItem[];
   experience: ExperienceItem[];
   projects: ProjectItem[];
+  openSource: ProjectItem[];
   about: AboutContent;
+  philosophy: PhilosophyContent;
   skills: Skills;
+  languages?: LangItem[];
+  awards?: AwardItem[];
+  sections: BookSection[];
+  contact: ContactContent;
 }
 
 export interface SiteConfig {
@@ -79,6 +143,7 @@ export interface TranslationKeys {
   nav: {
     experience: string;
     projects: string;
+    skills: string;
     about: string;
     contact: string;
   };
@@ -86,6 +151,7 @@ export interface TranslationKeys {
     availability: string;
     ctaContact: string;
     ctaProjects: string;
+    ctaNotebook: string;
     role: string;
   };
   experiences: {
@@ -101,6 +167,10 @@ export interface TranslationKeys {
   about: {
     title: string;
   };
+  skills: {
+    title: string;
+    intro: string;
+  };
   contact: {
     title: string;
     emailMe: string;
@@ -110,6 +180,8 @@ export interface TranslationKeys {
   footer: {
     builtWith: string;
     rights: string;
+    backToTop: string;
+    tagline: string;
   };
   theme: {
     light: string;

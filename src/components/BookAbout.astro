@@ -1,0 +1,8 @@
+---
+import CarnetPage from "./CarnetPage.astro";
+import OptimizedImage from "./OptimizedImage.astro";
+import type { AboutContent, HeroContent, TranslationKeys } from "@types";
+type Props = AboutContent & Pick<HeroContent, "name"> & { t: TranslationKeys; label: string };
+const { description, image, name, t, label } = Astro.props;
+---
+<CarnetPage id="about" index={4} label={label} texture="lines"><div class="page-spread about-spread"><div class="portrait"><OptimizedImage src={image} alt={name} width={560} height={680} /></div><div><h2 id="about-title">{t.about.title}</h2>{description.split("\n\n").slice(0, 3).map((paragraph) => <p>{paragraph}</p>)}</div></div></CarnetPage>

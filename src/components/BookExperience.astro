@@ -1,0 +1,7 @@
+---
+import CarnetPage from "./CarnetPage.astro";
+import type { ExperienceItem, TranslationKeys } from "@types";
+interface Props { experience: ExperienceItem[]; t: TranslationKeys; label: string }
+const { experience, t, label } = Astro.props;
+---
+<CarnetPage id="experience" index={1} label={label} texture="lines"><div class="page-spread"><div><h2 id="experience-title">{t.experiences.title}</h2><p>Selected roles and the systems behind them.</p></div><div class="timeline-list">{experience.map((item) => <article class="timeline-entry"><p class="page-eyebrow">{item.startDate} — {item.endDate || t.experiences.present}</p><h3>{item.company}</h3><p class="role">{item.position} · {item.location}</p><ul>{item.summary.slice(0, 2).map((line) => <li>{line}</li>)}</ul><div>{item.technologies.slice(0, 6).map((tech) => <span class="badge">{tech}</span>)}</div></article>)}</div></div></CarnetPage>

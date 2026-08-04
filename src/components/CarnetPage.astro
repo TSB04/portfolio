@@ -1,0 +1,20 @@
+---
+interface Props {
+  id: string;
+  index: number;
+  label: string;
+  texture?: "lines" | "grid" | "diagonal" | "plain";
+}
+
+const { id, index, label, texture = "plain" } = Astro.props;
+---
+
+<section id={id} class="carnet-page" data-texture={texture} aria-labelledby={`${id}-title`}>
+  <div class="page-inner">
+    <div class="page-content">
+      <p class="page-eyebrow">{label}</p>
+      <slot />
+    </div>
+  </div>
+  <span class="page-number" aria-hidden="true">{String(index).padStart(2, "0")} / 05</span>
+</section>

@@ -1,0 +1,12 @@
+---
+import type { BookSection } from "@types";
+
+interface Props { sections: BookSection[] }
+const { sections } = Astro.props;
+---
+
+<nav class="tab-nav" aria-label="Notebook sections">
+  {sections.map(({ id, tab, title }) => (
+    <a class="book-tab" href={`#${id}`} data-tab-for={id} aria-label={title}>{tab}</a>
+  ))}
+</nav>

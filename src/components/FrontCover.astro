@@ -1,0 +1,8 @@
+---
+import type { HeroContent, TranslationKeys } from "@types";
+type Props = HeroContent & { t: TranslationKeys };
+const { name, specialty, summary, availability, location, ctaLabel, ctaTarget = "#experience", t } = Astro.props;
+---
+<section id="hero" class="front-cover" aria-labelledby="hero-title">
+  <div class="cover-content"><p class="page-eyebrow">TSB / Full stack engineering</p><span class="badge cover-availability">● {availability}</span><h1 id="hero-title" class="text-gradient">{name}</h1><p class="cover-specialty">{specialty}</p><p class="cover-message">{summary}</p><div class="cover-actions"><a href={ctaTarget} class="btn btn-primary">{ctaLabel ?? t.hero.ctaNotebook} ↓</a><span class="cover-meta">{location}</span></div></div>
+</section>
