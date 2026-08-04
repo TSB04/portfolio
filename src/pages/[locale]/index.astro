@@ -25,13 +25,15 @@ const t = getTranslation(locale);
 
 // Titre localisé via les traductions (plus propre que le ternaire)
 const pageTitle = `${config.author} — ${t.hero.role || "Full Stack Engineer"}`;
+const totalPages = content.experience.length + content.projects.length + 2;
+const skillsIndex = content.experience.length + content.projects.length + 1;
 ---
 
 <Layout title={pageTitle} description={config.description} locale={locale}>
   <FrontCover {...content.hero} t={t} />
-  <BookExperience experience={content.experience} t={t} label={content.sections[0].eyebrow} />
-  <BookProjects projects={content.projects} t={t} label={content.sections[1].eyebrow} />
-  <Skills skills={content.skills} t={t} label={content.sections[2].eyebrow} />
-  <BookAbout {...content.about} name={content.hero.name} t={t} label={content.sections[3].eyebrow} />
+  <BookExperience experience={content.experience} t={t} label={content.sections[0].eyebrow} total={totalPages} />
+  <BookProjects projects={content.projects} t={t} label={content.sections[1].eyebrow} startIndex={content.experience.length + 1} total={totalPages} />
+  <Skills skills={content.skills} t={t} label={content.sections[2].eyebrow} index={skillsIndex} total={totalPages} />
+  <BookAbout {...content.about} name={content.hero.name} t={t} label={content.sections[3].eyebrow} index={skillsIndex + 1} total={totalPages} />
   <BackCover contact={content.contact} author={config.author} socialLinks={config.socialLinks} t={t} />
 </Layout>

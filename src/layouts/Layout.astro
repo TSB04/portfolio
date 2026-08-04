@@ -1,4 +1,4 @@
----
+﻿---
 import Header from "@components/Header.astro";
 import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
@@ -137,7 +137,7 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
         image: ogImgUrl,
         jobTitle:
           locale === "fr"
-            ? "Ingénieur Logiciel Full Stack"
+            ? "IngÃ©nieur Logiciel Full Stack"
             : "Full Stack Software Engineer",
         worksFor: { "@type": "Organization", name: "MTAE" },
         sameAs: socialLinks.map((link) => link.href),
@@ -215,7 +215,8 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
           onToggle: (trigger) => {
             if (!trigger.isActive) return;
             document.body.dataset.bookState = index === 0 ? "cover" : index === pages.length - 1 ? "back" : "page";
-            tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.tabFor === page.id));
+            const tabId = page.id.replace(/-\d+$/, "");
+            tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.tabFor === tabId));
           },
         });
         if (!reduceMotion && index > 0) {
