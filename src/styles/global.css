@@ -550,12 +550,13 @@
 .cover-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 2rem; }
 .cover-meta { color: var(--fg-muted); font-size: .875rem; }
 .cover-availability { color: var(--success); background: var(--success-muted); }
-.carnet-page { isolation: isolate; display: grid; align-items: stretch; overflow: visible; background: var(--page-bg, var(--surface)); border-bottom: 1px solid var(--border); }
+.carnet-page { isolation: isolate; display: grid; align-items: stretch; overflow: visible; perspective: 1800px; background: var(--page-bg, var(--surface)); border-bottom: 1px solid var(--border); }
 .carnet-page::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .8; background: var(--page-texture); }
 .carnet-page[data-texture="lines"] { --page-texture: repeating-linear-gradient(to bottom, transparent 0 31px, var(--paper-line) 32px); }
 .carnet-page[data-texture="grid"] { --page-texture: linear-gradient(var(--paper-line) 1px, transparent 1px), linear-gradient(90deg, var(--paper-line) 1px, transparent 1px); background-size: 32px 32px; }
 .carnet-page[data-texture="diagonal"] { --page-texture: repeating-linear-gradient(135deg, transparent 0 15px, var(--paper-line) 16px); }
-.page-inner { position: relative; display: grid; box-sizing: border-box; min-height: 100svh; width: min(100% - 3rem, 72rem); margin: 0 auto; padding: 6rem 0 3rem; }
+.page-inner { position: relative; display: grid; transform-style: preserve-3d; will-change: transform, opacity; box-sizing: border-box; min-height: 100svh; width: min(100% - 3rem, 72rem); margin: 0 auto; padding: 6rem 0 3rem; }
+.page-inner::before { content: ""; position: absolute; z-index: 2; inset: 0; pointer-events: none; opacity: var(--page-turn-shadow, 0); background: linear-gradient(90deg, color-mix(in oklab, black 38%, transparent), transparent 32%, transparent 68%, color-mix(in oklab, black 20%, transparent)); transition: opacity .12s linear; }
 .page-inner::after { content: ""; position: absolute; top: 1.5rem; bottom: 1.5rem; left: 50%; width: 1px; background: linear-gradient(180deg, transparent, var(--page-crease), transparent); }
 .page-content { min-width: 0; }
 .page-eyebrow { margin: 0 0 .75rem; color: var(--fg-subtle); font-family: ui-monospace, monospace; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
@@ -633,3 +634,18 @@ body[data-book-state="cover"] .tab-nav { opacity: 0; pointer-events: none; trans
     page-break-inside: avoid;
   }
 }
+
+/* Real book stage: PageFlip owns the sheet geometry while the HTML remains the no-JS fallback. */
+body.book-flip-active { overflow: hidden; background: var(--bg); }
+body.book-flip-active #book { width: min(100vw - 2rem, 1360px); height: min(100svh - 2rem, 860px); margin: 1rem auto; }
+body.book-flip-active .booklet-page { min-height: 0 !important; height: 100% !important; overflow: hidden !important; background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+body.book-flip-active .front-cover, body.book-flip-active .back-cover { display: block; background: var(--cover-bg); }
+body.book-flip-active .cover-content { box-sizing: border-box; width: 100%; height: 100%; padding: clamp(2rem, 7vh, 5rem) clamp(1.5rem, 6vw, 5rem); overflow-y: auto; }
+body.book-flip-active .cover-content h1 { font-size: clamp(2.75rem, 5vw, 5.5rem); }
+body.book-flip-active .page-inner { width: 100%; min-height: 100%; height: 100%; margin: 0; padding: clamp(2rem, 6vh, 4rem) clamp(1.25rem, 4vw, 3.5rem); overflow-y: auto; scrollbar-width: thin; }
+body.book-flip-active .page-inner::after { top: 1rem; bottom: 1rem; }
+body.book-flip-active .page-number { right: 1rem; bottom: 1rem; }
+body.book-flip-active .project-card-featured { min-height: min(62vh, 34rem); }
+body.book-flip-active .skill-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body.book-flip-active .tab-nav { z-index: 50; }
+@media (max-width: 767px) { body.book-flip-active #book { width: calc(100vw - 1rem); height: calc(100svh - 1rem); margin: .5rem auto; } body.book-flip-active .page-inner { padding: 4rem 1.25rem 2.25rem; } body.book-flip-active .skill-card-grid { grid-template-columns: 1fr; } body.book-flip-active .project-card-featured { min-height: auto; } }

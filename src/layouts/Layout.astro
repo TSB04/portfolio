@@ -175,84 +175,68 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
       />
 
       <TabNav sections={content.sections} />
-      <div id="book" class="w-full">
-        <main class="mx-auto w-full">
+      <main id="book" class="book-fallback mx-auto w-full">
           <slot />
         </main>
-      </div>
     </div>
   </body>
 </html>
 
 <script>
-  import Lenis from "lenis";
-  import { gsap } from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { PageFlip } from "page-flip";
 
-  gsap.registerPlugin(ScrollTrigger);
   let dispose: (() => void) | undefined;
 
   function initialiseBook() {
     dispose?.();
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const desktop = window.matchMedia("(min-width: 1024px)").matches;
-    const pages = Array.from(document.querySelectorAll<HTMLElement>("#hero, .carnet-page, #contact"));
+    const book = document.querySelector<HTMLElement>("#book");
+    const pages = Array.from(document.querySelectorAll<HTMLElement>(".booklet-page"));
     const tabs = Array.from(document.querySelectorAll<HTMLElement>("[data-tab-for]"));
-    let lenis: Lenis | undefined;
-    let rafId = 0;
-    const context = gsap.context(() => {
-      if (!reduceMotion && !window.matchMedia("(pointer: coarse)").matches) {
-        lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
-        const raf = (time: number) => { lenis?.raf(time); rafId = requestAnimationFrame(raf); };
-        rafId = requestAnimationFrame(raf);
-        lenis.on("scroll", ScrollTrigger.update);
-      }
-      pages.forEach((page, index) => {
-        ScrollTrigger.create({
-          trigger: page,
-          start: "top center",
-          end: "bottom center",
-          onToggle: (trigger) => {
-            if (!trigger.isActive) return;
-            document.body.dataset.bookState = index === 0 ? "cover" : index === pages.length - 1 ? "back" : "page";
-            const tabId = page.id.replace(/-\d+$/, "");
-            tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.tabFor === tabId));
-          },
-        });
-        if (!reduceMotion && index > 0) {
-          gsap.from(page.querySelector(".page-inner, .cover-content"), {
-            xPercent: desktop ? 6 : 3,
-            rotateY: desktop ? -16 : 0,
-            opacity: 0,
-            transformPerspective: 1600,
-            duration: 0.7,
-            ease: "power3.out",
-            scrollTrigger: { trigger: page, start: "top 76%", toggleActions: "play none none reverse" },
-          });
-          const revealTargets = page.querySelectorAll<HTMLElement>(".page-heading, .timeline-entry, .project-card, .skill-card, .portrait");
-          if (revealTargets.length) {
-            gsap.from(revealTargets, {
-              y: 20,
-              opacity: 0,
-              duration: 0.45,
-              stagger: 0.07,
-              ease: "power2.out",
-              scrollTrigger: { trigger: page, start: "top 68%", toggleActions: "play none none reverse" },
-            });
-          }
-        }
+    if (!book || pages.length < 2 || reduceMotion) return;
+
+    const pageIndex = new Map(pages.map((page, index) => [page.id, index]));
+    const pageFlip = new PageFlip(book, { width: 520, height: 720, size: "stretch", minWidth: 300, maxWidth: 680, minHeight: 420, maxHeight: 860, maxShadowOpacity: 0.58, showCover: true, mobileScrollSupport: false, usePortrait: true, drawShadow: true, flippingTime: 900, autoSize: true, startZIndex: 10 });
+    pageFlip.loadFromHTML(pages);
+    document.body.classList.add("book-flip-active");
+
+    const setBookState = (index: number) => {
+      const page = pages[index];
+      if (!page) return;
+      document.body.dataset.bookState = index === 0 ? "cover" : index === pages.length - 1 ? "back" : "page";
+      const tabId = page.id.replace(/-\d+$/, "");
+      tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.tabFor === tabId));
+      page.querySelectorAll<HTMLElement>(".page-heading, .timeline-entry, .project-card, .skill-card, .portrait").forEach((target, targetIndex) => {
+        target.animate([{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 380, delay: targetIndex * 55, easing: "cubic-bezier(.22,1,.36,1)", fill: "both" });
       });
-    });
-    const navigate = (event: Event) => {
+    };
+    pageFlip.on("flip", (event) => setBookState(event.data));
+    setBookState(0);
+
+    const onClick = (event: Event) => {
       const anchor = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
       if (!anchor) return;
       const target = document.querySelector<HTMLElement>(anchor.getAttribute("href") || "");
-      if (!target) return;
+      const targetIndex = target ? pageIndex.get(target.id) : undefined;
+      if (targetIndex === undefined) return;
       event.preventDefault();
-      lenis ? lenis.scrollTo(target, { duration: 1.1 }) : target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+      pageFlip.flip(targetIndex, targetIndex > pageFlip.getCurrentPageIndex() ? "bottom" : "top");
     };
-    document.addEventListener("click", navigate);
-    dispose = () => { document.removeEventListener("click", navigate); cancelAnimationFrame(rafId); lenis?.destroy(); context.revert(); ScrollTrigger.getAll().forEach((trigger) => trigger.kill()); };
+    let wheelLocked = false;
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) < 12 || wheelLocked) return;
+      event.preventDefault(); wheelLocked = true;
+      if (event.deltaY > 0) pageFlip.flipNext("bottom"); else pageFlip.flipPrev("top");
+      window.setTimeout(() => { wheelLocked = false; }, 650);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (["ArrowDown", "PageDown", "ArrowRight"].includes(event.key)) { event.preventDefault(); pageFlip.flipNext("bottom"); }
+      if (["ArrowUp", "PageUp", "ArrowLeft"].includes(event.key)) { event.preventDefault(); pageFlip.flipPrev("top"); }
+    };
+    document.addEventListener("click", onClick);
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKeyDown);
+    dispose = () => { document.removeEventListener("click", onClick); window.removeEventListener("wheel", onWheel); window.removeEventListener("keydown", onKeyDown); pageFlip.destroy(); document.body.classList.remove("book-flip-active"); };
   }
   document.addEventListener("astro:page-load", initialiseBook);
   document.addEventListener("astro:before-swap", () => dispose?.());
