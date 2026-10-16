@@ -5,6 +5,7 @@ import type { Locale, ProjectItem, TranslationKeys } from "@types";
 interface Props { projects: ProjectItem[]; t: TranslationKeys; locale?: Locale; label: string; startIndex: number; total: number }
 const { projects, t, locale = "en", label, startIndex, total } = Astro.props;
 const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(value));
+const size = (kb: number) => `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(kb / 1024)} MB`;
 ---
 
 {projects.map((project, index) => (
@@ -13,10 +14,11 @@ const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short"
       <div class="page-heading">
         <h2>{project.name}</h2>
         <p>{project.github?.fullName ?? `${t.projects.title} ${String(index + 1).padStart(2, "0")} / ${String(projects.length).padStart(2, "0")}`}</p>
+        {project.github && <div class="repo-heading-meta"><span class="badge">{project.github.private ? t.projects.privateRepository : t.projects.publicRepository}</span>{project.github.defaultBranch && <span class="repo-branch"><span aria-hidden="true">⑂</span> {project.github.defaultBranch}</span>}</div>}
       </div>
       <article class="project-card project-card-featured">
         {(!project.github || project.github.hasImage) ? (
-          <OptimizedImage src={project.image} alt={project.name} width={900} height={480} />
+          <div class:list={["project-visual", { "project-visual-brand": project.imageFit === "contain" }]}><OptimizedImage src={project.image} alt={project.name} width={900} height={Math.round(900 * project.image.height / project.image.width)} /></div>
         ) : (
           <div class="repo-art" aria-hidden="true">
             <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
@@ -27,6 +29,7 @@ const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short"
           </div>
         )}
         <div>
+          <h3 class="repo-section-label">{t.projects.overview}</h3>
           <p>{project.summary}</p>
           <div class="project-tags">{project.tags.map((tag) => <span class="badge">{tag}</span>)}</div>
           {project.github && (
@@ -35,6 +38,9 @@ const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short"
               <div><dt>{t.projects.forks}</dt><dd>{project.github.forks.toLocaleString(locale)}</dd></div>
               <div><dt>{t.projects.updated}</dt><dd><time datetime={project.github.updatedAt}>{date(project.github.updatedAt)}</time></dd></div>
               {project.github.license && <div><dt>{t.projects.license}</dt><dd>{project.github.license}</dd></div>}
+              {project.github.createdAt && <div><dt>{t.projects.created}</dt><dd><time datetime={project.github.createdAt}>{date(project.github.createdAt)}</time></dd></div>}
+              {project.github.sizeKB !== undefined && project.github.sizeKB > 0 && <div><dt>{t.projects.repositorySize}</dt><dd>{size(project.github.sizeKB)}</dd></div>}
+              {project.github.openItems !== undefined && project.github.openItems > 0 && <div><dt>{t.projects.openItems}</dt><dd>{project.github.openItems.toLocaleString(locale)}</dd></div>}
             </dl>
           )}
           <div class="project-actions">
@@ -44,6 +50,7 @@ const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short"
           </div>
         </div>
       </article>
+      {project.github?.release?.url && <section class="note-card repo-release"><div><p class="page-eyebrow">{t.projects.latestRelease}</p><h3><a href={project.github.release.url} target="_blank" rel="noopener noreferrer">{project.github.release.name} <span aria-hidden="true">↗</span></a></h3></div>{project.github.release.publishedAt && <time datetime={project.github.release.publishedAt}>{date(project.github.release.publishedAt)}</time>}</section>}
       {project.github && project.github.languages.length > 0 && (
         <section class="repo-language-panel" aria-label={t.projects.languages}>
           <h3>{t.projects.languages}</h3>
@@ -56,6 +63,17 @@ const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short"
         <section class="note-card repo-readme">
           <h3>{t.projects.repositoryNotes}</h3>
           <p>{project.github.readmeExcerpt}</p>
+        </section>
+      )}
+      {project.github?.submodules && project.github.submodules.length > 0 && (
+        <section class="repo-components" aria-label={t.projects.submodules}>
+          <div class="repo-components-heading"><h3>{t.projects.submodules}</h3><span class="badge">{project.github.submodules.length}</span></div>
+          <div class="repo-component-list">{project.github.submodules.map((component) => <article class="note-card repo-component">
+            <div class="repo-component-heading"><h4>{component.name}</h4>{component.language && <span class="badge">{component.language}</span>}</div>
+            <p class="repo-component-path">{component.path}</p>
+            {component.summary && <p>{component.summary}</p>}
+            <div class="repo-component-footer"><span title={t.projects.pinnedCommit}>{t.projects.pinnedCommit} <code>{component.commit.slice(0, 7)}</code></span>{component.url && <a href={component.url} target="_blank" rel="noopener noreferrer" aria-label={`${t.projects.componentSource}: ${component.name}`}>{t.projects.sourceCode} <span aria-hidden="true">↗</span></a>}</div>
+          </article>)}</div>
         </section>
       )}
     </div>

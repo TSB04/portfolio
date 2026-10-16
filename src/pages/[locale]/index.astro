@@ -7,6 +7,8 @@ import Skills from "@components/Skills.astro";
 import BookAbout from "@components/BookAbout.astro";
 import BookExtras from "@components/BookExtras.astro";
 import BackCover from "@components/BackCover.astro";
+import saayBrand from "@images/projects/saay/logo/saay.png";
+import sunustreamBrand from "@images/projects/sunustream/Logos/colored-logo.png";
 import { getSiteConfig, getSiteContent } from "@config";
 import { getGitHubProjects } from "../../lib/github";
 import { getTranslation, isValidLocale, defaultLocale, type Locale } from "@i18n";
@@ -23,7 +25,11 @@ const locale: Locale = isValidLocale(rawLocale!) ? rawLocale : defaultLocale;
 
 const config = getSiteConfig(locale);
 const baseContent = getSiteContent(locale);
-const projects = await getGitHubProjects(locale, baseContent.projects);
+const projects = (await getGitHubProjects(locale, baseContent.projects)).map((project) => {
+  const name = project.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const image = ["saay", "saayagent"].includes(name) ? saayBrand : ["sunustream", "sunuflix"].includes(name) ? sunustreamBrand : undefined;
+  return image ? { ...project, image, imageFit: "contain" as const, github: project.github ? { ...project.github, hasImage: true } : undefined } : project;
+});
 const usesGitHub = projects.some((project) => project.github);
 const content = { ...baseContent, projects, openSource: usesGitHub ? projects.filter((project) => project.github?.license && !project.github.private) : baseContent.openSource };
 const hasCommunity = content.openSource.length > 0;
