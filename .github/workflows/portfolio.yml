@@ -1,0 +1,85 @@
+name: Portfolio CI and deployment
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run astro check
+      - run: npm run test:github
+      - run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build static portfolio
+        env:
+          GITHUB_CLIENT_ID: ${{ secrets.PORTFOLIO_GITHUB_CLIENT_ID }}
+          GITHUB_INSTALLATION_ID: ${{ secrets.PORTFOLIO_GITHUB_INSTALLATION_ID }}
+          GITHUB_PRIVATE_KEY: ${{ secrets.PORTFOLIO_GITHUB_PRIVATE_KEY }}
+        run: npm run build
+      - run: npm run check:seo
+      - run: python3 scripts/deploy.py package
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: portfolio-release
+          path: |
+            .deploy/portfolio.tar.gz
+            .deploy/promote.py
+            .deploy/release.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://tsb-dev.fr
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: portfolio-release
+          path: release
+      - name: Publish verified production bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="portfolio-${GITHUB_SHA}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" release/* --clobber
+          else
+            gh release create "$tag" release/* --target "$GITHUB_SHA" --prerelease --title "Portfolio ${GITHUB_SHA:0:12}" --notes "Validated production bundle for main commit ${GITHUB_SHA}."
+          fi
+      - name: Confirm production serves this commit
+        env:
+          EXPECTED_COMMIT: ${{ github.sha }}
+        run: python3 scripts/verify-production.py --wait 600
