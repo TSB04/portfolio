@@ -158,6 +158,7 @@ function initBook() {
     else hideChrome();
   }, { signal });
   document.addEventListener("keydown", (event) => {
+    if (document.querySelector("dialog[open]")) return;
     if (event.key === "Escape" && view === "book") {
       if (ui.some((element) => element.contains(document.activeElement))) stages.book.focus({ preventScroll: true });
       hideChrome();
@@ -212,6 +213,7 @@ function initBook() {
   window.addEventListener("hashchange", () => { navigate(location.hash.slice(1), false, false); }, { signal });
   const editable = (target: EventTarget | null) => target instanceof Element && !!target.closest("input, textarea, select, [contenteditable=true]");
   window.addEventListener("wheel", (event) => {
+    if (document.querySelector("dialog[open]")) return;
     if (event.ctrlKey || editable(event.target) || (event.target instanceof Element && event.target.closest("#site-header, .tab-nav"))) return;
     const down = event.deltaY > 0;
     if (view !== "book") {
@@ -227,6 +229,7 @@ function initBook() {
     if (Math.abs(wheelTotal) >= 60) { wheelTotal = 0; step(down ? 1 : -1); }
   }, { passive: false, signal });
   window.addEventListener("keydown", (event) => {
+    if (document.querySelector("dialog[open]")) return;
     if (editable(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
     const direction = ["ArrowRight", "PageDown"].includes(event.key) ? 1 : ["ArrowLeft", "PageUp"].includes(event.key) ? -1 : 0;
     if (direction) { event.preventDefault(); step(direction); }

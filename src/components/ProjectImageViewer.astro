@@ -1,0 +1,62 @@
+---
+import type { TranslationKeys } from "@types";
+interface Props { t: TranslationKeys }
+const { t } = Astro.props;
+---
+<dialog class="project-image-dialog" aria-labelledby="project-image-title">
+  <div class="project-image-toolbar">
+    <h2 id="project-image-title"></h2>
+    <a data-image-original target="_blank" rel="noopener noreferrer">{t.projects.originalImage} &#8599;</a>
+    <button class="btn btn-secondary" data-image-zoom aria-pressed="false">{t.projects.zoomImage}</button>
+    <form method="dialog"><button class="btn btn-secondary" autofocus>{t.projects.closeImage} &#215;</button></form>
+  </div>
+  <div class="project-image-canvas" tabindex="0"></div>
+</dialog>
+<script>
+  let dispose: (() => void) | undefined;
+  function initImageViewer() {
+    dispose?.();
+    const dialog = document.querySelector<HTMLDialogElement>(".project-image-dialog");
+    const canvas = dialog?.querySelector<HTMLElement>(".project-image-canvas");
+    const title = dialog?.querySelector<HTMLElement>("#project-image-title");
+    const original = dialog?.querySelector<HTMLAnchorElement>("[data-image-original]");
+    if (!dialog || !canvas || !title || !original) return;
+    const zoom = dialog.querySelector<HTMLButtonElement>("[data-image-zoom]");
+    const controller = new AbortController();
+    const { signal } = controller;
+    let trigger: HTMLAnchorElement | undefined;
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element) || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const link = event.target.closest<HTMLAnchorElement>("a[data-project-image]");
+      if (!link) return;
+      event.preventDefault();
+      trigger = link;
+      const image = new Image();
+      image.src = link.href; // An Astro-optimized local asset, never a repository-supplied URL.
+      image.alt = link.dataset.imageTitle || "";
+      image.width = Number(link.dataset.imageWidth);
+      image.height = Number(link.dataset.imageHeight);
+      title.textContent = image.alt;
+      original.href = link.href;
+      canvas.replaceChildren(image);
+      dialog.showModal();
+      canvas.scrollTo(0, 0);
+    }, { signal, capture: true });
+    const toggleZoom = () => {
+      const expanded = canvas.classList.toggle("is-zoomed");
+      zoom?.setAttribute("aria-pressed", String(expanded));
+    };
+    canvas.addEventListener("click", toggleZoom, { signal });
+    zoom?.addEventListener("click", toggleZoom, { signal });
+    dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }, { signal });
+    dialog.addEventListener("close", () => {
+      canvas.replaceChildren(); canvas.classList.remove("is-zoomed");
+      zoom?.setAttribute("aria-pressed", "false");
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+    }, { signal });
+    dispose = () => { if (dialog.open) dialog.close(); controller.abort(); };
+  }
+  document.addEventListener("astro:page-load", initImageViewer);
+  document.addEventListener("astro:before-swap", () => dispose?.());
+  initImageViewer();
+</script>

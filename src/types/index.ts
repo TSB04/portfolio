@@ -53,6 +53,9 @@ export interface ProjectItem {
   linkSource: string;
   image: ImageMetadata;
   imageFit?: "cover" | "contain";
+  imageKind?: "logo" | "illustration";
+  overview?: string[];
+  featured?: boolean;
   tags: string[];
   github?: {
     private?: boolean;
@@ -210,6 +213,11 @@ export interface TranslationKeys {
     languages: string;
     repositoryNotes: string;
     overview: string;
+    featured: string;
+    enlargeImage: string;
+    closeImage: string;
+    zoomImage: string;
+    originalImage: string;
     created: string;
     defaultBranch: string;
     openItems: string;

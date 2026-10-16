@@ -33,11 +33,13 @@ GITHUB_PROJECT_LIMIT=0
 GITHUB_REPOSITORIES=*
 ```
 
-`GITHUB_REPOSITORIES` is optional. When provided, it filters repository names (or full `owner/name` names). All selections are sorted by latest push first, falling back to the update date when no push date is available, with no cap by default. `GITHUB_PROJECT_LIMIT=0` means unlimited; a positive integer enables an optional cap. Listing follows pagination until exhausted.
+`GITHUB_REPOSITORIES` is optional. When provided, it filters repository names (or full `owner/name` names). The fetching layer sorts by latest push first, falling back to the update date when no push date is available, with no cap by default. `GITHUB_PROJECT_LIMIT=0` means unlimited; a positive integer enables an optional cap. Listing follows pagination until exhausted.
 
 Project pages include descriptions, topics, creation and last-push dates, default branch, repository size, open issue/pull request count, stars, forks, license, language percentages, and the latest public release when available. Repository size is GitHub's reported size, not a download-size estimate. Private repositories do not populate the open-source chapter.
 
-Local images match SAAY, Studio/API/AI/homelab, Invora and SunuStream by repository name. Supplied portraits appear on the cover and About pages. Existing screenshots are reused only for matching repository URLs; other projects receive a CSS illustration.
+The presentation layer places SAAY, SunuStream, Invora and Automation Tools first, preserving recency for the remaining projects. Localized editorial overviews live in `src/config/projectPresentation.ts` and use owner-provided content and approved metadata. Other projects gain language/component context where available; private READMEs are never fetched.
+
+Local images match SAAY, Studio/API/AI/homelab, Invora and SunuStream by repository name. Supplied portraits appear on the cover and About pages. Existing screenshots are reused only for matching repository URLs; other projects receive a CSS illustration. Assets named `*-logo` use a compact treatment. Architecture illustrations span the page width, preserve their aspect ratio and open in a native modal with zoom and a full-size link. The viewer uses optimized local images and suspends book navigation while open.
 
 ## Submodules
 

@@ -1,7 +1,7 @@
 import type { SiteConfig, SiteContent, Locale } from "../types";
 
 import logo from "@images/logo.png";
-import saayAgent from "@images/projects/saay/saay-studio.png";
+import saayAgent from "@images/projects/saay/saay-studio-logo.png";
 import invoice from "@images/projects/invora/invora.png";
 import sunuflix from "@images/projects/sunustream/colored-logo.png";
 import homelab from "@images/homelab.png";
