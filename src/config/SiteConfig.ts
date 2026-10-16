@@ -22,7 +22,7 @@ const baseConfig: SiteConfig = {
   title: "TSB — Full Stack Engineer",
   author: "Thierno Sadou BARRY",
   description:
-    "Senior Full Stack Software Engineer specializing in Java, Spring Boot, React, and AI-powered enterprise SaaS. Building scalable backend systems, cloud infrastructure, and intelligent web applications.",
+    "Thierno Sadou BARRY, Full Stack Engineer in Paris. Java, Spring Boot, React and AI integration. Explore my projects, experience and freelance availability.",
   keywords: [
     "Full Stack Engineer",
     "Java Developer",
@@ -65,10 +65,38 @@ const baseConfig: SiteConfig = {
 const baseContent: SiteContent = {
   hero: {
     name: "Thierno Sadou BARRY",
-    specialty: "Full Stack Engineer • Java • Spring Boot • React • AI",
-    summary:
-      "I architect and ship enterprise-grade software—scalable backends, AI-integrated systems, and cloud-native infrastructure. Currently building financial SaaS platforms and exploring local AI infrastructure with LLMs and autonomous agents.",
     email: "thierno.sadou.barry98@gmail.com",
+    specialty: "Full Stack Engineer • Java • Spring Boot • React • AI",
+    summary: [
+      {
+        title: "Full-Stack Engineer",
+        text: "I design, build, and ship software, from user interfaces to backend services and production infrastructure. My work spans enterprise applications, accounting and invoicing platforms, and AI integration, with a focus on turning complex requirements into dependable software.",
+      },
+      {
+        title: "Enterprise Software at MTAE",
+        text: "At MTAE, I develop applications for accounting and electronic invoicing. I led the development of an invoice reception module used by more than 800 clients, implementing business workflows, API integrations, and document processing to support their daily operations.",
+      },
+      {
+        title: "My Technical Foundation",
+        text: "I work primarily with Java, Spring Boot, React, Next.js, and PostgreSQL. Across frontend and backend development, I focus on clear architecture, secure authentication, maintainable code, and interfaces that make complex workflows easier to navigate.",
+      },
+      {
+        title: "SAAY: Exploring Local and Hybrid AI",
+        text: "I’m building SAAY, a modular project combining AI services, developer tooling, and infrastructure. I work with local LLMs, cloud inference, and secure access, while exploring how autonomous agents can support development workflows with appropriate controls.",
+      },
+      {
+        title: "SunuStream: Building Across Screens",
+        text: "I’m developing SunuStream, a streaming platform aimed at Senegal and surrounding markets. It combines web and Smart TV applications, media discovery, live TV integration, and video transcoding pipelines. The project is still evolving, with VOD content sourcing remaining an active area of work.",
+      },
+      {
+        title: "Infrastructure and Delivery",
+        text: "I run a Proxmox homelab where I deploy and maintain containerized applications, configure networking and remote access, and manage monitoring. I also build CI/CD workflows with GitHub Actions, connecting application development with repeatable deployment and production operations.",
+      },
+      {
+        title: "Background and Motivation",
+        text: "Originally from Senegal and based in France since 2019, I completed an MSc in Web and Mobile Development at ESTIAM. I’m motivated by practical problems and the opportunity to build useful products, whether that means improving a business workflow or developing tools for communities I know.",
+      },
+    ],
     availability: "Open to freelance & full-time opportunities",
     location: "Paris, France",
     ctaLabel: "Open the notebook",
@@ -84,7 +112,8 @@ const baseContent: SiteContent = {
   ],
   contact: {
     heading: "Let's build something together",
-    message: "Whether it's a full-time role, a freelance mission, or a technical challenge worth solving — my inbox is open.",
+    message:
+      "Whether it's a full-time role, a freelance mission, or a technical challenge worth solving — my inbox is open.",
     email: "thierno.sadou.barry98@gmail.com",
     location: "Paris, France",
     availability: "Open to freelance & full-time opportunities",
@@ -385,7 +414,7 @@ const baseContent: SiteContent = {
       name: "universal-svg-icons",
       summary:
         "Framework-agnostic SVG icon library for React, Vue, Angular, and Svelte.",
-        linkPreview: "/...",
+      linkPreview: "/...",
       linkSource: "https://github.com/tsb04/universal-svg-icons",
       image: svgIcons,
       tags: ["TypeScript", "NPM", "SVG", "Accessibility"],
@@ -550,8 +579,15 @@ const frContent: SiteContent = {
   hero: {
     ...baseContent.hero,
     specialty: "Ingénieur Full Stack • Java • Spring Boot • React • IA",
-    summary:
-      "Je conçois et livre des logiciels enterprise—backends scalables, systèmes intégrés à l'IA, et infrastructure cloud-native. Actuellement, je construis des plateformes SaaS financières et explore l'infrastructure IA locale avec les LLMs et les agents autonomes.",
+    summary: [
+      { title: "Ingénieur Full Stack", text: "Je conçois, développe et livre des logiciels, des interfaces aux services backend et à l’infrastructure de production. Mon travail couvre les applications d’entreprise, la comptabilité, la facturation et l’intégration de l’IA, pour transformer des besoins complexes en logiciels fiables." },
+      { title: "Les logiciels métier chez MTAE", text: "Chez MTAE, je développe des applications de comptabilité et de facturation électronique. J’ai piloté le développement d’un module de réception de factures utilisé par plus de 800 clients, avec des workflows métier, des intégrations API et du traitement documentaire." },
+      { title: "Mes fondations techniques", text: "Je travaille principalement avec Java, Spring Boot, React, Next.js et PostgreSQL. Je privilégie une architecture claire, une authentification sécurisée, du code maintenable et des interfaces qui simplifient les processus complexes." },
+      { title: "SAAY : IA locale et hybride", text: "Je construis SAAY, un projet modulaire associant services d’IA, outils de développement et infrastructure. J’explore les LLM locaux, l’inférence cloud et les accès sécurisés, ainsi que l’assistance au développement par des agents autonomes avec des contrôles adaptés." },
+      { title: "SunuStream : du web à la télévision", text: "Je développe SunuStream, une plateforme de streaming destinée au Sénégal et aux marchés voisins : applications web et Smart TV, découverte de médias, télévision en direct et transcodage vidéo. Le projet évolue encore, notamment sur l’approvisionnement en contenus VOD." },
+      { title: "Infrastructure et livraison", text: "Dans mon homelab Proxmox, je déploie et maintiens des applications conteneurisées, configure le réseau, les accès distants et la supervision. Je construis aussi des workflows CI/CD avec GitHub Actions pour relier développement et déploiements reproductibles." },
+      { title: "Parcours et motivation", text: "Originaire du Sénégal et installé en France depuis 2019, j’ai obtenu un MSc en développement web et mobile à ESTIAM. Les problèmes concrets et les produits utiles me motivent, qu’il s’agisse d’améliorer un processus métier ou de créer des outils pour les communautés que je connais." },
+    ],
     availability: "Disponible pour missions freelance et CDI",
     location: "Paris, France",
     ctaLabel: "Ouvrir le carnet",
@@ -562,11 +598,17 @@ const frContent: SiteContent = {
     { id: "projects", tab: "P", eyebrow: "Chapitre 02", title: "Projets" },
     { id: "skills", tab: "S", eyebrow: "Chapitre 03", title: "Compétences" },
     { id: "about", tab: "A", eyebrow: "Chapitre 04", title: "À propos" },
-    { id: "contact", tab: "C", eyebrow: "Quatrième de couverture", title: "Contact" },
+    {
+      id: "contact",
+      tab: "C",
+      eyebrow: "Quatrième de couverture",
+      title: "Contact",
+    },
   ],
   contact: {
     heading: "Construisons quelque chose ensemble",
-    message: "Que ce soit pour un poste, une mission freelance ou un défi technique à résoudre — ma boîte mail est ouverte.",
+    message:
+      "Que ce soit pour un poste, une mission freelance ou un défi technique à résoudre — ma boîte mail est ouverte.",
     email: "thierno.sadou.barry98@gmail.com",
     location: "Paris, France",
     availability: "Disponible pour missions freelance et CDI",
@@ -665,8 +707,6 @@ const frContent: SiteContent = {
     },
   ],
 
-  
-
   about: {
     description: `Je suis un Ingénieur Logiciel Full Stack concentré sur la construction de systèmes qui résolvent de vrais problèmes business à grande échelle.
 
@@ -715,7 +755,7 @@ export function getSiteConfig(locale: Locale = "en"): SiteConfig {
     title: locale === "fr" ? "TSB — Ingénieur Full Stack" : baseConfig.title,
     description:
       locale === "fr"
-        ? "Ingénieur Logiciel Full Stack Senior spécialisé en Java, Spring Boot, React et SaaS enterprise propulsé par l'IA. Construction de systèmes backend scalables, infrastructure cloud et applications web intelligentes."
+        ? "Thierno Sadou BARRY, ingénieur Full Stack à Paris : Java, Spring Boot, React et IA. Découvrez mes projets, mon parcours et mes disponibilités freelance."
         : baseConfig.description,
   };
 }

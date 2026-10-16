@@ -4,7 +4,7 @@ import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import { getSiteConfig, getSiteContent } from "@config";
 import TabNav from "@components/TabNav.astro";
-import { type Locale } from "../i18n";
+import { getTranslation, type Locale } from "../i18n";
 
 import "../styles/global.css";
 
@@ -18,6 +18,7 @@ const { locale = "en" } = Astro.props;
 
 const config = getSiteConfig(locale);
 const content = getSiteContent(locale);
+const t = getTranslation(locale);
 
 const {
   title: baseTitle,
@@ -31,31 +32,60 @@ const {
 } = config;
 
 const baseUrl = Astro.site?.href || "https://tsb-dev.fr";
-const canonicalURL = new URL(Astro.url.pathname, baseUrl).href;
+const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
+const canonicalURL = new URL(canonicalPath, baseUrl).href;
 const title = Astro.props.title || baseTitle;
 const description = Astro.props.description || baseDescription;
 const ogImgUrl = new URL(socialImage, baseUrl).href;
-const pageTitle = title ? `${title} | ${config.author}` : config.author;
+const pageTitle = title;
 
 const currentPath = Astro.url.pathname.replace(/^\/(en|fr)/, "") || "/";
-const enUrl = new URL(currentPath, baseUrl).href;
-const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
+const enUrl = new URL(`/en${currentPath === "/" ? "/" : `${currentPath.replace(/\/+$/, "")}/`}`, baseUrl).href;
+const frUrl = new URL(`/fr${currentPath === "/" ? "/" : `${currentPath.replace(/\/+$/, "")}/`}`, baseUrl)
   .href;
+const personId = new URL("/#person", baseUrl).href;
+const websiteId = new URL("/#website", baseUrl).href;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person", "@id": personId,
+      name: author, alternateName: "TSB", url: new URL("/en/", baseUrl).href,
+      jobTitle: locale === "fr" ? "Ingénieur logiciel Full Stack" : "Full Stack Software Engineer",
+      worksFor: { "@type": "Organization", name: "MTAE" },
+      sameAs: socialLinks.map((link) => link.href),
+      knowsLanguage: ["en", "fr"],
+      knowsAbout: ["Java", "Spring Boot", "React", "TypeScript", "PostgreSQL", "AI integration"],
+    },
+    {
+      "@type": "WebSite", "@id": websiteId, url: baseUrl,
+      name: "Thierno Sadou BARRY — TSB", inLanguage: ["en", "fr"],
+      publisher: { "@id": personId },
+    },
+    {
+      "@type": "ProfilePage", "@id": `${canonicalURL}#webpage`,
+      url: canonicalURL, name: pageTitle, description, inLanguage: locale,
+      mainEntity: { "@id": personId }, isPartOf: { "@id": websiteId },
+      primaryImageOfPage: { "@type": "ImageObject", url: ogImgUrl, width: 1200, height: 630 },
+    },
+  ],
+};
 ---
 
 <!doctype html>
 <html lang={lang}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Theme initialization -->
     <script is:inline>
       (function () {
         function applyTheme() {
+          let savedTheme;
+          try { savedTheme = localStorage.getItem("theme"); } catch { /* Storage can be disabled. */ }
           const theme =
-            localStorage.getItem("theme") ||
+            savedTheme ||
             (window.matchMedia("(prefers-color-scheme: dark)").matches
               ? "dark"
               : "light");
@@ -77,8 +107,7 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
 
     <meta name="author" content={author} />
     <meta name="description" content={description} />
-    <meta name="keywords" content={config.keywords?.join(", ")} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="generator" content={Astro.generator} />
     <meta
       name="theme-color"
@@ -92,17 +121,17 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
     />
 
     <link rel="canonical" href={canonicalURL} />
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <link rel="alternate" hreflang="en" href={enUrl} />
     <link rel="alternate" hreflang="fr" href={frUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
 
     <title>{pageTitle}</title>
 
@@ -112,10 +141,14 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={author} />
     <meta property="og:locale" content={lang === "en" ? "en_US" : "fr_FR"} />
+    <meta property="og:locale:alternate" content={lang === "en" ? "fr_FR" : "en_US"} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:image" content={ogImgUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={`${author} portfolio preview`} />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -128,116 +161,47 @@ const frUrl = new URL(`/fr${currentPath === "/" ? "" : currentPath}`, baseUrl)
     <meta name="twitter:image:alt" content={`${author} portfolio preview`} />
 
     <script
+      is:inline
       type="application/ld+json"
-      set:html={JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Person",
-        name: author,
-        url: canonicalURL,
-        image: ogImgUrl,
-        jobTitle:
-          locale === "fr"
-            ? "IngÃ©nieur Logiciel Full Stack"
-            : "Full Stack Software Engineer",
-        worksFor: { "@type": "Organization", name: "MTAE" },
-        sameAs: socialLinks.map((link) => link.href),
-        description: description,
-        knowsLanguage: ["en", "fr"],
-      })}
+      set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
     />
 
-    <script>
-      document.addEventListener("keydown", (e) => {
-        const container = document.querySelector(".snap-y");
-        if (!container) return;
-        const pageHeight = window.innerHeight - 80; // 5rem header
-        if (e.key === "ArrowDown" || e.key === "PageDown") {
-          e.preventDefault();
-          container.scrollBy({ top: pageHeight, behavior: "smooth" });
-        }
-        if (e.key === "ArrowUp" || e.key === "PageUp") {
-          e.preventDefault();
-          container.scrollBy({ top: -pageHeight, behavior: "smooth" });
-        }
-      });
-    </script>
+
 
     <slot name="head" />
   </head>
 
-  <body class="text-fg font-sans antialiased bg-bg" data-book-state="cover">
-    <div class="w-full bg-bg">
+  <body class="text-fg font-sans antialiased bg-bg">
+    <div class="bg-scene" aria-hidden="true"></div>
+    <a class="skip-link" href="#contents">{locale === "fr" ? "Aller au contenu" : "Skip to content"}</a>
+    <div class="app-shell">
       <Header
         siteLogo={siteLogo}
         navLinks={navLinks}
         locale={locale}
-        transition:persist
       />
 
-      <TabNav sections={content.sections} />
-      <main id="book" class="book-fallback mx-auto w-full">
-          <slot />
-        </main>
+      <div class="reader-dock" data-reader-ui="dock">
+        <TabNav sections={content.sections} locale={locale} />
+        <div class="book-controls" role="group" aria-label={locale === "fr" ? "Tourner les pages" : "Turn pages"}>
+          <button class="btn btn-secondary" data-book-step="-1" aria-label={locale === "fr" ? "Page précédente" : "Previous page"}>&larr;</button>
+          <span class="book-progress" data-book-progress role="status" aria-live="polite"></span>
+          <button class="btn btn-secondary" data-book-step="1" aria-label={locale === "fr" ? "Page suivante" : "Next page"}>&rarr;</button>
+        </div>
+      </div>
+      <main id="portfolio">
+        <slot name="opening" />
+        <section id="reading" class="portfolio-stage reading-stage" aria-label={t.book.edition} tabindex="-1">
+          <div id="book" class="book-fallback" data-continued={t.book.continued}>
+            <slot />
+          </div>
+        </section>
+        <slot name="closing" />
+      </main>
     </div>
   </body>
 </html>
 
 <script>
-  import { PageFlip } from "page-flip";
-
-  let dispose: (() => void) | undefined;
-
-  function initialiseBook() {
-    dispose?.();
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const book = document.querySelector<HTMLElement>("#book");
-    const pages = Array.from(document.querySelectorAll<HTMLElement>(".booklet-page"));
-    const tabs = Array.from(document.querySelectorAll<HTMLElement>("[data-tab-for]"));
-    if (!book || pages.length < 2 || reduceMotion) return;
-
-    const pageIndex = new Map(pages.map((page, index) => [page.id, index]));
-    const pageFlip = new PageFlip(book, { width: 520, height: 720, size: "stretch", minWidth: 300, maxWidth: 680, minHeight: 420, maxHeight: 860, maxShadowOpacity: 0.58, showCover: true, mobileScrollSupport: false, usePortrait: true, drawShadow: true, flippingTime: 900, autoSize: true, startZIndex: 10 });
-    pageFlip.loadFromHTML(pages);
-    document.body.classList.add("book-flip-active");
-
-    const setBookState = (index: number) => {
-      const page = pages[index];
-      if (!page) return;
-      document.body.dataset.bookState = index === 0 ? "cover" : index === pages.length - 1 ? "back" : "page";
-      const tabId = page.id.replace(/-\d+$/, "");
-      tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.tabFor === tabId));
-      page.querySelectorAll<HTMLElement>(".page-heading, .timeline-entry, .project-card, .skill-card, .portrait").forEach((target, targetIndex) => {
-        target.animate([{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 380, delay: targetIndex * 55, easing: "cubic-bezier(.22,1,.36,1)", fill: "both" });
-      });
-    };
-    pageFlip.on("flip", (event) => setBookState(event.data));
-    setBookState(0);
-
-    const onClick = (event: Event) => {
-      const anchor = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
-      if (!anchor) return;
-      const target = document.querySelector<HTMLElement>(anchor.getAttribute("href") || "");
-      const targetIndex = target ? pageIndex.get(target.id) : undefined;
-      if (targetIndex === undefined) return;
-      event.preventDefault();
-      pageFlip.flip(targetIndex, targetIndex > pageFlip.getCurrentPageIndex() ? "bottom" : "top");
-    };
-    let wheelLocked = false;
-    const onWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) < 12 || wheelLocked) return;
-      event.preventDefault(); wheelLocked = true;
-      if (event.deltaY > 0) pageFlip.flipNext("bottom"); else pageFlip.flipPrev("top");
-      window.setTimeout(() => { wheelLocked = false; }, 650);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (["ArrowDown", "PageDown", "ArrowRight"].includes(event.key)) { event.preventDefault(); pageFlip.flipNext("bottom"); }
-      if (["ArrowUp", "PageUp", "ArrowLeft"].includes(event.key)) { event.preventDefault(); pageFlip.flipPrev("top"); }
-    };
-    document.addEventListener("click", onClick);
-    window.addEventListener("wheel", onWheel, { passive: false });
-    window.addEventListener("keydown", onKeyDown);
-    dispose = () => { document.removeEventListener("click", onClick); window.removeEventListener("wheel", onWheel); window.removeEventListener("keydown", onKeyDown); pageFlip.destroy(); document.body.classList.remove("book-flip-active"); };
-  }
-  document.addEventListener("astro:page-load", initialiseBook);
-  document.addEventListener("astro:before-swap", () => dispose?.());
+  import "../scripts/book";
 </script>

@@ -36,6 +36,7 @@ const isExternal = typeof src === "string";
       height={height}
       loading={priority ? "eager" : loading}
       decoding="async"
+      fetchpriority={priority ? "high" : undefined}
       class={className}
     />
   ) : (
@@ -46,6 +47,9 @@ const isExternal = typeof src === "string";
       height={height}
       loading={priority ? "eager" : loading}
       decoding="async"
+      fetchpriority={priority ? "high" : undefined}
+      widths={width ? [Math.min(360, width), Math.min(640, width), width].filter((value, index, values) => values.indexOf(value) === index) : undefined}
+      sizes={width ? `(max-width: 639px) calc(100vw - 3rem), (max-width: 959px) calc(100vw - 6rem), min(45vw, ${width}px)` : undefined}
       class={className}
     />
   )

@@ -42,6 +42,19 @@ export interface ProjectItem {
   linkSource: string;
   image: ImageMetadata;
   tags: string[];
+  github?: {
+    private?: boolean;
+    fullName: string;
+    stars: number;
+    forks: number;
+    updatedAt: string;
+    license: string | null;
+    language: string | null;
+    languages: { name: string; percent: number }[];
+    readmeUrl: string;
+    readmeExcerpt: string;
+    hasImage: boolean;
+  };
 }
 
 export interface Skills {
@@ -69,7 +82,8 @@ export interface AwardItem {
 export interface HeroContent {
   name: string;
   specialty: string;
-  summary: string;
+  summary: string | { title: string; text: string }[];
+  image?: ImageMetadata;
   email: string;
   availability: string;
   location: string;
@@ -140,7 +154,10 @@ export interface SiteConfig {
 export type Locale = "en" | "fr";
 
 export interface TranslationKeys {
+  book: { continued: string; community: string; contents: string; intro: string; education: string; certifications: string; principles: string; hint: string; edition: string };
   nav: {
+    menu: string;
+    home: string;
     experience: string;
     projects: string;
     skills: string;
@@ -152,6 +169,10 @@ export interface TranslationKeys {
     ctaContact: string;
     ctaProjects: string;
     ctaNotebook: string;
+    summaryPrevious: string;
+    summaryNext: string;
+    summaryPause: string;
+    summaryPlay: string;
     role: string;
   };
   experiences: {
@@ -163,6 +184,13 @@ export interface TranslationKeys {
     title: string;
     viewProject: string;
     sourceCode: string;
+    readme: string;
+    stars: string;
+    forks: string;
+    updated: string;
+    license: string;
+    languages: string;
+    repositoryNotes: string;
   };
   about: {
     title: string;
@@ -170,6 +198,9 @@ export interface TranslationKeys {
   skills: {
     title: string;
     intro: string;
+    technology: string;
+    practice: string;
+    categories: { title: string; note: string }[];
   };
   contact: {
     title: string;

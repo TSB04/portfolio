@@ -2,6 +2,7 @@
 import ThemeToggle from "./ThemeToggle.astro";
 import LanguageToggle from "./LanguageToggle.astro";
 import OptimizedImage from "@components/OptimizedImage.astro";
+import { getTranslation } from "@i18n";
 import Menu from "@icons/Menu.astro";
 import type { Locale } from "../types";
 
@@ -13,22 +14,23 @@ export interface Props {
 
 const { siteLogo, navLinks, locale = "en" } = Astro.props;
 
-const homeHref = locale === "fr" ? "/fr" : "/";
+const homeHref = `/${locale}/#hero`;
+const t = getTranslation(locale);
 ---
 
 <header
   id="site-header"
+  data-reader-ui="header"
   class="fixed inset-x-0 top-0 z-50 border-b border-transparent bg-bg/70 backdrop-blur-xl transition-all duration-300"
-  transition:persist
 >
   <nav class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
 
-    <a href={homeHref} class="group">
+    <a href={homeHref} class="group" aria-label={t.nav.home}>
       <OptimizedImage
         src={siteLogo}
         width={95}
         height={52}
-        alt="Logo"
+        alt="TSB — Thierno Sadou BARRY"
         priority
         class="rounded-full ring-1 ring-border transition duration-300 group-hover:scale-105"
       />
@@ -37,6 +39,7 @@ const homeHref = locale === "fr" ? "/fr" : "/";
     <button
       id="menu-button"
       class="sm:hidden"
+      aria-label={t.nav.menu}
       aria-expanded="false"
       aria-controls="main-menu"
     >
@@ -72,54 +75,46 @@ const homeHref = locale === "fr" ? "/fr" : "/";
 </header>
 
 <script>
-const header = document.getElementById("site-header");
-const button = document.getElementById("menu-button");
-const menu = document.getElementById("main-menu");
-const navItems = [...document.querySelectorAll(".nav-item")];
-
-button?.addEventListener("click", () => {
-    menu?.classList.toggle("hidden");
-});
-
-const updateHeader = () => {
-
-    if (window.scrollY > 10) {
-        header?.classList.add("border-border","shadow-lg","bg-bg/90");
-        header?.classList.remove("border-transparent","bg-bg/70");
-    } else {
-        header?.classList.remove("border-border","shadow-lg","bg-bg/90");
-        header?.classList.add("border-transparent","bg-bg/70");
-    }
-};
-
-updateHeader();
-
-window.addEventListener("scroll", updateHeader, {
-    passive:true
-});
-
-const observer = new IntersectionObserver(entries=>{
-
-entries.forEach(entry=>{
-
-if(!entry.isIntersecting) return;
-
-navItems.forEach(item=>{
-
-const active=item.getAttribute("href")==="#" + entry.target.id;
-
-item.classList.toggle("text-fg",active);
-item.classList.toggle("after:w-full",active);
-
-});
-
-});
-
-},{
-threshold:.55
-});
-
-document.querySelectorAll("section").forEach(section=>{
-observer.observe(section);
-});
+  let dispose: (() => void) | undefined;
+  function initNavigation() {
+    dispose?.();
+    const button = document.getElementById("menu-button");
+    const menu = document.getElementById("main-menu");
+    if (!button || !menu) return;
+    const controller = new AbortController();
+    const { signal } = controller;
+    const close = () => { menu.classList.add("hidden"); button.setAttribute("aria-expanded", "false"); };
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") !== "true";
+      menu.classList.toggle("hidden", !open);
+      button.setAttribute("aria-expanded", String(open));
+    }, { signal });
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("#main-menu a") || !target.closest("#site-header")) close();
+    }, { signal });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && button.getAttribute("aria-expanded") === "true") { close(); button.focus(); }
+    }, { signal });
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>(".nav-item, [data-tab-for]"));
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".booklet-page"));
+    const visible = new Map<Element, number>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { visible.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0); });
+      if (document.body.classList.contains("book-turn-active")) return;
+      const current = sections.reduce<HTMLElement | undefined>((best, section) => (visible.get(section) ?? 0) > (best ? visible.get(best) ?? 0 : 0) ? section : best, undefined);
+      if (!current) return;
+      const id = current.id.replace(/-\d+$/, "");
+      links.forEach((link) => {
+        const active = link.hash === `#${id}`;
+        link.classList.toggle("is-active", active);
+        if (active) link.setAttribute("aria-current", "location"); else link.removeAttribute("aria-current");
+      });
+    }, { threshold: [0, .15, .35, .55, .75] });
+    sections.forEach((section) => observer.observe(section));
+    dispose = () => { controller.abort(); observer.disconnect(); };
+  }
+  document.addEventListener("astro:page-load", initNavigation);
+  document.addEventListener("astro:before-swap", () => dispose?.());
 </script>

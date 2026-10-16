@@ -1,12 +1,12 @@
 ---
-import type { BookSection } from "@types";
+import type { BookSection, Locale } from "@types";
 
-interface Props { sections: BookSection[] }
-const { sections } = Astro.props;
+interface Props { sections: BookSection[]; locale: Locale }
+const { sections, locale } = Astro.props;
 ---
 
-<nav class="tab-nav" aria-label="Notebook sections">
+<nav class="tab-nav" aria-label={locale === "fr" ? "Sections du portfolio" : "Portfolio sections"}>
   {sections.map(({ id, tab, title }) => (
-    <a class="book-tab" href={`#${id}`} data-tab-for={id} aria-label={title}>{tab}</a>
+    <a class="book-tab" href={`#${id}`} data-tab-for={id} aria-label={title} title={title}><span aria-hidden="true">{tab}</span><span class="book-tab-tooltip" aria-hidden="true">{title}</span></a>
   ))}
 </nav>

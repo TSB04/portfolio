@@ -6,12 +6,14 @@ import sitemap from "@astrojs/sitemap";
 // https://astro.build/config
 export default defineConfig({
   site: "https://tsb-dev.fr",
+  trailingSlash: "always",
+  compressHTML: true,
 
   i18n: {
     locales: ["en", "fr"],
     defaultLocale: "en",
     routing: {
-      prefixDefaultLocale: false, // / for en, /fr for fr
+      prefixDefaultLocale: true, // The real pages live at /en and /fr; / redirects to /en.
     },
   },
 
@@ -28,14 +30,25 @@ export default defineConfig({
       name: "Be Vietnam Pro",
       cssVariable: "--font-be-vietnam-pro",
       fallbacks: ["ui-sans-serif", "system-ui", "sans-serif"],
-      weights: [300, 400, 500, 600, 700],
+      weights: [400, 500, 600, 700],
     },
   ],
 
   vite: {
     plugins: [tailwindcss()],
   },
-  integrations: [sitemap()],
+  integrations: [sitemap({
+    // Only canonical portfolio pages, never redirects or legacy card pages.
+    filter: (page) => /^\/(en|fr)\/$/.test(new URL(page).pathname),
+    serialize: (item) => ({
+      ...item,
+      links: [
+        { lang: "en", url: "https://tsb-dev.fr/en/" },
+        { lang: "fr", url: "https://tsb-dev.fr/fr/" },
+        { lang: "x-default", url: "https://tsb-dev.fr/en/" },
+      ],
+    }),
+  })],
 
   // Optional: Image optimization
   image: {

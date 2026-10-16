@@ -1,5 +1,4 @@
 ---
-// Redirection vers la langue préférée de l'utilisateur
-// ou vers la locale par défaut
-return Astro.redirect("/en");
+// Static fallback; the hosting server also issues a permanent HTTP redirect.
+return Astro.redirect("/en/", 301);
 ---

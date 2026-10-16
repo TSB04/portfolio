@@ -10,7 +10,7 @@ interface Props {
 const { id, index, total, label, texture = "plain" } = Astro.props;
 ---
 
-<section id={id} class="booklet-page carnet-page" data-texture={texture} aria-label={label}>
+<section id={id} class="booklet-page carnet-page" data-texture={texture} data-book-section={id.replace(/-\d+$/, "")} aria-label={label}>
   <div class="page-inner">
     <div class="page-content">
       <p class="page-eyebrow">{label}</p>

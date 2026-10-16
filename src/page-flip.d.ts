@@ -1,4 +1,4 @@
-﻿declare module "page-flip" {
+declare module "page-flip" {
   type Corner = "top" | "bottom";
   interface PageFlipSettings {
     width: number;
@@ -15,6 +15,8 @@
     drawShadow?: boolean;
     flippingTime?: number;
     autoSize?: boolean;
+    disableFlipByClick?: boolean;
+    showPageCorners?: boolean;
     startZIndex?: number;
   }
   export class PageFlip {
@@ -25,6 +27,12 @@
     flipNext(corner: Corner): void;
     flipPrev(corner: Corner): void;
     getCurrentPageIndex(): number;
+    update(): void;
+    updateFromHtml(pages: HTMLElement[]): void;
+    turnToPage(index: number): void;
+    getSettings(): PageFlipSettings;
+    getOrientation(): "portrait" | "landscape";
+    on(eventName: "changeState", callback: (event: { data: string }) => void): void;
     destroy(): void;
   }
 }

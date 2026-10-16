@@ -1,8 +1,48 @@
 ﻿---
 import type { HeroContent, TranslationKeys } from "@types";
+import OptimizedImage from "./OptimizedImage.astro";
 type Props = HeroContent & { t: TranslationKeys };
-const { name, specialty, summary, availability, location, ctaLabel, ctaTarget = "#experience", t } = Astro.props;
+const { name, specialty, summary, image, availability, location, ctaLabel, t } = Astro.props;
+const items = typeof summary === "string" ? [{ title: t.nav.about, text: summary }] : summary;
 ---
-<section id="hero" class="booklet-page front-cover" data-density="hard" aria-labelledby="hero-title">
-  <div class="cover-content"><p class="page-eyebrow">TSB / Full stack engineering</p><span class="badge cover-availability">â— {availability}</span><h1 id="hero-title" class="text-gradient">{name}</h1><p class="cover-specialty">{specialty}</p><p class="cover-message">{summary}</p><div class="cover-actions"><a href={ctaTarget} class="btn btn-primary">{ctaLabel ?? t.hero.ctaNotebook} â†“</a><span class="cover-meta">{location}</span></div></div>
+<section id="hero" class="portfolio-stage front-cover" aria-labelledby="hero-title" tabindex="-1">
+  <div class="cover-content">
+    <p class="page-eyebrow">{t.book.edition}</p>
+    <span class="badge cover-availability"><span class="availability-dot" aria-hidden="true"></span>{availability}</span>
+    <h1 id="hero-title" class="text-gradient">{name}</h1>
+    <p class="cover-specialty">{specialty}</p>
+    <hero-summary class="hero-summary">
+      <div class="summary-items">
+        {items.map((item, index) => (
+          <article class:list={["summary-item", { "is-current": index === 0 }]} aria-hidden={index !== 0 ? "true" : undefined} inert={index !== 0}>
+            <h2 class="summary-title">{item.title}</h2>
+            <p class="cover-message"><span class="sr-only">{item.text}</span><span class="summary-measure" aria-hidden="true">{item.text}</span><span class="summary-writing" aria-hidden="true">{item.text}</span></p>
+          </article>
+        ))}
+      </div>
+      <div class="summary-controls" hidden>
+        <button type="button" data-summary-prev aria-label={t.hero.summaryPrevious}>←</button>
+        <span class="summary-count" aria-hidden="true"></span>
+        <button type="button" data-summary-next aria-label={t.hero.summaryNext}>→</button>
+        <button type="button" data-summary-pause data-pause-label={t.hero.summaryPause} data-play-label={t.hero.summaryPlay} aria-label={t.hero.summaryPause}>Ⅱ</button>
+      </div>
+    </hero-summary>
+    <div class="cover-actions">
+      <a href="#contents" class="btn btn-primary">{ctaLabel ?? t.hero.ctaNotebook}<span aria-hidden="true">↗</span></a>
+      <span class="cover-meta">{location}</span>
+    </div>
+    <p class="book-hint">{t.book.hint}</p>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="hero-bubble">
+      {image && <OptimizedImage src={image} alt="" width={800} height={960} priority />}
+      {!image && <span class="hero-monogram">TSB<span>ENGINEERING</span></span>}
+    </div>
+    <span class="hero-orbit hero-orbit-one"></span>
+    <span class="hero-orbit hero-orbit-two"></span>
+  </div>
 </section>
+
+<script>
+  import "../scripts/hero-summary";
+</script>

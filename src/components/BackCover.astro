@@ -5,17 +5,20 @@ const { contact, author, socialLinks, t } = Astro.props;
 const year = new Date().getFullYear();
 ---
 
-<section id="contact" class="booklet-page back-cover" data-density="hard" aria-labelledby="contact-title">
+<section id="contact" class="portfolio-stage back-cover" aria-labelledby="contact-title" tabindex="-1">
   <div class="cover-content">
-    <p class="page-eyebrow">Back cover</p>
+    <p class="page-eyebrow">{t.nav.contact}</p>
     <h2 id="contact-title">{contact.heading}</h2>
     <p class="cover-message">{contact.message}</p>
-    <a class="btn btn-primary" href={`mailto:${contact.email}`}>{contact.email}</a>
-    <p class="cover-meta">{contact.location} Â· {contact.availability}</p>
+    <a class="btn btn-primary" href={`mailto:${contact.email}`}>{contact.email}<span aria-hidden="true">↗</span></a>
+    <p class="cover-meta">{contact.location} · {contact.availability}</p>
     <footer>
       <ul>{socialLinks.map(({ text, href }) => <li><a href={href} target="_blank" rel="noopener noreferrer">{text}</a></li>)}</ul>
-      <p>{author} Â© {year} Â· {t.footer.tagline}</p>
-      <a class="btn btn-ghost" href="#hero">â†‘ {t.footer.backToTop}</a>
+      <p>{author} © {year} · {t.footer.tagline}</p>
+      <div class="cover-return-links">
+        <a class="btn btn-ghost" href="#contents"><span aria-hidden="true">↖</span>{t.footer.backToTop}</a>
+        <a class="btn btn-ghost" href="#hero"><span aria-hidden="true">↑</span>{t.nav.home}</a>
+      </div>
     </footer>
   </div>
 </section>

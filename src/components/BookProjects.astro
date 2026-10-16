@@ -1,8 +1,63 @@
 ﻿---
 import CarnetPage from "./CarnetPage.astro";
 import OptimizedImage from "./OptimizedImage.astro";
-import type { ProjectItem, TranslationKeys } from "@types";
-interface Props { projects: ProjectItem[]; t: TranslationKeys; label: string; startIndex: number; total: number }
-const { projects, t, label, startIndex, total } = Astro.props;
+import type { Locale, ProjectItem, TranslationKeys } from "@types";
+interface Props { projects: ProjectItem[]; t: TranslationKeys; locale?: Locale; label: string; startIndex: number; total: number }
+const { projects, t, locale = "en", label, startIndex, total } = Astro.props;
+const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(value));
 ---
-{projects.map((project, index) => <CarnetPage id={index === 0 ? "projects" : `projects-${index + 1}`} index={startIndex + index} total={total} label={`${label} · ${project.name}`} texture="grid"><div class="project-page"><div class="page-heading"><h2>{project.name}</h2><p>Project {String(index + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</p></div><article class="project-card project-card-featured"><OptimizedImage src={project.image} alt={project.name} width={900} height={480} /><div><p>{project.summary}</p><div class="project-tags">{project.tags.map((tag) => <span class="badge">{tag}</span>)}</div><div class="project-actions">{project.linkSource && <a href={project.linkSource} class="btn btn-secondary" target="_blank" rel="noopener noreferrer">{t.projects.sourceCode}</a>}{project.linkPreview && <a href={project.linkPreview} class="btn btn-primary" target={project.linkPreview.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">{t.projects.viewProject} ?</a>}</div></div></article></div></CarnetPage>)}
+
+{projects.map((project, index) => (
+  <CarnetPage id={index === 0 ? "projects" : `projects-${index + 1}`} index={startIndex + index} total={total} label={`${label} - ${project.name}`} texture="grid">
+    <div class="project-page">
+      <div class="page-heading">
+        <h2>{project.name}</h2>
+        <p>{project.github?.fullName ?? `${t.projects.title} ${String(index + 1).padStart(2, "0")} / ${String(projects.length).padStart(2, "0")}`}</p>
+      </div>
+      <article class="project-card project-card-featured">
+        {(!project.github || project.github.hasImage) ? (
+          <OptimizedImage src={project.image} alt={project.name} width={900} height={480} />
+        ) : (
+          <div class="repo-art" aria-hidden="true">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+              <rect x="4" y="3" width="16" height="18" rx="2" />
+              <path d="M8 3v18M12 8l-2 2 2 2m4-4 2 2-2 2M12 16h5" />
+            </svg>
+            <span>{project.github.language ?? "GitHub"}</span>
+          </div>
+        )}
+        <div>
+          <p>{project.summary}</p>
+          <div class="project-tags">{project.tags.map((tag) => <span class="badge">{tag}</span>)}</div>
+          {project.github && (
+            <dl class="repo-metadata">
+              <div><dt>{t.projects.stars}</dt><dd>{project.github.stars.toLocaleString(locale)}</dd></div>
+              <div><dt>{t.projects.forks}</dt><dd>{project.github.forks.toLocaleString(locale)}</dd></div>
+              <div><dt>{t.projects.updated}</dt><dd><time datetime={project.github.updatedAt}>{date(project.github.updatedAt)}</time></dd></div>
+              {project.github.license && <div><dt>{t.projects.license}</dt><dd>{project.github.license}</dd></div>}
+            </dl>
+          )}
+          <div class="project-actions">
+            {project.linkSource && <a href={project.linkSource} class="btn btn-secondary" target="_blank" rel="noopener noreferrer">{t.projects.sourceCode} &#8599;</a>}
+            {project.github?.readmeUrl && <a href={project.github.readmeUrl} class="btn btn-ghost" target="_blank" rel="noopener noreferrer">{t.projects.readme} &#8599;</a>}
+            {(project.linkPreview.startsWith("https://") || project.linkPreview.startsWith("http://")) && <a href={project.linkPreview} class="btn btn-primary" target="_blank" rel="noopener noreferrer">{t.projects.viewProject} &#8599;</a>}
+          </div>
+        </div>
+      </article>
+      {project.github && project.github.languages.length > 0 && (
+        <section class="repo-language-panel" aria-label={t.projects.languages}>
+          <h3>{t.projects.languages}</h3>
+          <ul>{project.github.languages.slice(0, 5).map((language) => (
+            <li><span>{language.name}</span><span>{language.percent.toLocaleString(locale)}%</span><div class="repo-language-track" aria-hidden="true"><span style={`width:${language.percent}%`}></span></div></li>
+          ))}</ul>
+        </section>
+      )}
+      {project.github?.readmeExcerpt && (
+        <section class="note-card repo-readme">
+          <h3>{t.projects.repositoryNotes}</h3>
+          <p>{project.github.readmeExcerpt}</p>
+        </section>
+      )}
+    </div>
+  </CarnetPage>
+))}

@@ -20,7 +20,7 @@ export function getAlternateLocale(current: Locale): Locale {
 }
 
 export function getLocalePath(locale: Locale): string {
-  return `/${locale}`;
+  return `/${locale}/`;
 }
 
 export type { TranslationKeys, Locale };

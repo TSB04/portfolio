@@ -1,0 +1,30 @@
+---
+import CarnetPage from "./CarnetPage.astro";
+import type { SiteContent, TranslationKeys } from "@types";
+interface Props { kind: "contents" | "education" | "principles" | "community"; content: SiteContent; t: TranslationKeys; index: number; total: number }
+const { kind, content, t, index, total } = Astro.props;
+const title = t.book[kind];
+---
+<CarnetPage id={kind} {index} {total} label={title} texture={kind === "education" ? "lines" : "plain"}>
+  <div class="page-heading"><h2>{title}</h2></div>
+  {kind === "contents" && <>
+    <p class="contents-intro">{t.book.intro}</p>
+    <div class="contents-list">
+      {content.sections.map((section, i) => <a class="contents-link" href={`#${section.id}`}><span class="contents-index">{String(i + 1).padStart(2, "0")}</span><span>{section.title}<small>{section.eyebrow}</small></span><span aria-hidden="true">↗</span></a>)}
+      <a class="contents-link" href="#education"><span class="contents-index">06</span><span>{t.book.education}</span><span aria-hidden="true">↗</span></a>
+      <a class="contents-link" href="#principles"><span class="contents-index">07</span><span>{t.book.principles}</span><span aria-hidden="true">↗</span></a>
+      {content.openSource.length > 0 && <a class="contents-link" href="#community"><span class="contents-index">08</span><span>{t.book.community}</span><span aria-hidden="true">&#8599;</span></a>}
+    </div>
+  </>}
+  {kind === "education" && <>
+    <div class="notes-list">{content.education.map((item) => <article class="note-card"><p class="page-eyebrow">{item.startDate} — {item.endDate}</p><h3>{item.degree}</h3><p>{item.institution} · {item.location}</p><p>{item.field}</p><ul>{item.highlights.map((highlight) => <li>{highlight}</li>)}</ul></article>)}</div>
+    <h3 class="notes-subtitle">{t.book.certifications}</h3>
+    <div class="notes-list">{content.certifications.map((item) => <article class="note-card"><h3>{item.name}</h3><p>{item.issuer} · {item.year}</p><p>{item.description}</p></article>)}</div>
+  </>}
+  {kind === "community" && <div class="notes-list">{content.openSource.map((project) => <article class="note-card"><h3>{project.name}</h3><p>{project.summary}</p><div class="project-tags">{project.tags.map((tag) => <span class="badge">{tag}</span>)}</div>{project.linkSource && <a class="btn btn-ghost" href={project.linkSource} target="_blank" rel="noopener noreferrer">{t.projects.sourceCode} &#8599;</a>}</article>)}</div>}
+  {kind === "principles" && <>
+    <blockquote class="notebook-quote">“{content.philosophy.quote}”</blockquote>
+    <p class="contents-intro">{content.philosophy.vision}</p>
+    <div class="notes-list">{content.philosophy.principles.map((principle, i) => <article class="note-card principle-card"><span class="contents-index">{String(i + 1).padStart(2, "0")}</span><p>{principle}</p></article>)}</div>
+  </>}
+</CarnetPage>
