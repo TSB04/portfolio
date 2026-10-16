@@ -7,7 +7,7 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-PRIVATE_DIRECTORIES = {".ssh", ".aws", ".azure", ".kube", ".gcloud", ".private", ".direnv", ".cache", ".deploy"}
+PRIVATE_DIRECTORIES = {".keys", ".ssh", ".aws", ".azure", ".kube", ".gcloud", ".private", ".direnv", ".cache", ".deploy"}
 PRIVATE_SUFFIXES = {".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".der", ".crt", ".cer", ".pub", ".db", ".sqlite", ".sqlite3", ".dump", ".backup", ".bak", ".log"}
 TEXT_SUFFIXES = {".md", ".txt", ".py", ".ts", ".js", ".mjs", ".astro", ".json", ".yml", ".yaml", ".toml", ".conf", ".sh", ".html"}
 KEY_HEADER = re.compile(r"-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----")

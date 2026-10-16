@@ -15,6 +15,7 @@ const year = new Date().getFullYear();
     <footer>
       <ul>{socialLinks.map(({ text, href }) => <li><a href={href} target="_blank" rel="noopener noreferrer">{text}</a></li>)}</ul>
       <p>{author} © {year} · {t.footer.tagline}</p>
+      <p><a href="/license.txt" target="_blank" rel="noopener noreferrer">{t.footer.rights}</a></p>
       <div class="cover-return-links">
         <a class="btn btn-ghost" href="#contents"><span aria-hidden="true">↖</span>{t.footer.backToTop}</a>
         <a class="btn btn-ghost" href="#hero"><span aria-hidden="true">↑</span>{t.nav.home}</a>

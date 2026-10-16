@@ -1,4 +1,5 @@
 import type { Locale, ProjectItem } from "@types";
+import { frenchProjectSummaries } from "./projectTranslations.ts";
 
 const key = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
 const displayNames: Record<string, string> = { saay: "SAAY", sunustream: "SunuStream", invora: "Invora", automationtool: "Automation Tools", automationtools: "Automation Tools" };
@@ -32,7 +33,8 @@ export function presentProjects(projects: ProjectItem[], locale: Locale): Projec
   return projects.map((project) => {
     const id = key(project.name);
     const editorial = overviews[id === "automationtools" ? "automationtool" : id]?.[locale];
-    const overview = editorial ? [...editorial] : [project.summary];
+    const summary = locale === "fr" ? frenchProjectSummaries[id] ?? project.summary : project.summary;
+    const overview = editorial ? [...editorial] : [summary];
     const languages = project.github?.languages.slice(0, 4).map((language) => language.name) ?? [];
     if (!editorial && languages.length) overview.push(locale === "fr"
       ? `Le code de ce dépôt utilise ${languages.join(", ")}. La répartition ci-dessous indique la place de chaque langage dans le projet.`

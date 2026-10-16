@@ -131,7 +131,7 @@ def main():
                 raise ValueError("Unsafe archive entry")
             if path.parts[0] != "site" and member.name not in ("compose.yml", "nginx.conf", "ingress-http.conf", "ingress-https.conf"):
                 raise ValueError("Unexpected archive entry")
-            if any(part.startswith(".env") or part in (".git", ".ssh", ".aws", ".azure", ".kube", ".private") for part in path.parts) or path.suffix.lower() in (".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".db", ".sqlite", ".sqlite3") or path.name.lower() in ("operator.json", ".npmrc", ".netrc", "credentials.json"):
+            if any(part.startswith(".env") or part in (".git", ".keys", ".ssh", ".aws", ".azure", ".kube", ".private") for part in path.parts) or path.suffix.lower() in (".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".db", ".sqlite", ".sqlite3") or path.name.lower() in ("operator.json", ".npmrc", ".netrc", "credentials.json"):
                 raise ValueError("Private file in public release")
             target = release.joinpath(*path.parts)
             target.parent.mkdir(parents=True, exist_ok=True)

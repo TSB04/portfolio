@@ -178,6 +178,7 @@ export type Locale = "en" | "fr";
 
 export interface TranslationKeys {
   book: { continued: string; community: string; contents: string; intro: string; education: string; certifications: string; principles: string; hint: string; edition: string };
+  reader: { turnPages: string; previousPage: string; nextPage: string };
   nav: {
     menu: string;
     home: string;
@@ -240,6 +241,7 @@ export interface TranslationKeys {
     technology: string;
     practice: string;
     categories: { title: string; note: string }[];
+    labels: Record<string, string>;
   };
   contact: {
     title: string;

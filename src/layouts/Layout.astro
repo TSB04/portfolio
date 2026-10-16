@@ -86,11 +86,13 @@ const structuredData = {
           let savedTheme;
           try { savedTheme = localStorage.getItem("theme"); } catch { /* Storage can be disabled. */ }
           const theme =
-            savedTheme ||
+            (savedTheme === "dark" || savedTheme === "light" ? savedTheme : undefined) ||
+            window.__portfolioTheme ||
             (window.matchMedia("(prefers-color-scheme: dark)").matches
               ? "dark"
               : "light");
           const html = document.documentElement;
+          window.__portfolioTheme = theme;
           if (theme === "dark") {
             html.classList.add("dark");
             html.style.colorScheme = "dark";
@@ -100,7 +102,10 @@ const structuredData = {
           }
         }
         applyTheme();
-        document.addEventListener("astro:after-swap", applyTheme);
+        if (!window.__portfolioThemeInitialized) {
+          document.addEventListener("astro:after-swap", applyTheme);
+          window.__portfolioThemeInitialized = true;
+        }
       })();
     </script>
 
@@ -184,10 +189,10 @@ const structuredData = {
 
       <div class="reader-dock" data-reader-ui="dock">
         <TabNav sections={content.sections} locale={locale} />
-        <div class="book-controls" role="group" aria-label={locale === "fr" ? "Tourner les pages" : "Turn pages"}>
-          <button class="btn btn-secondary" data-book-step="-1" aria-label={locale === "fr" ? "Page précédente" : "Previous page"}>&larr;</button>
+        <div class="book-controls" role="group" aria-label={t.reader.turnPages}>
+          <button class="btn btn-secondary" data-book-step="-1" aria-label={t.reader.previousPage}>&larr;</button>
           <span class="book-progress" data-book-progress role="status" aria-live="polite"></span>
-          <button class="btn btn-secondary" data-book-step="1" aria-label={locale === "fr" ? "Page suivante" : "Next page"}>&rarr;</button>
+          <button class="btn btn-secondary" data-book-step="1" aria-label={t.reader.nextPage}>&rarr;</button>
         </div>
       </div>
       <main id="portfolio">

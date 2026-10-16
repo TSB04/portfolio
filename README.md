@@ -18,7 +18,7 @@ The website is fully static. Visitors receive no GitHub credentials and make no 
 
 ## Start locally
 
-Requires Node.js **22.12 or later**; CI uses Node 24. Python 3 is needed for repository and deployment checks.
+Requires Node.js **22.22 or later**; CI uses Node 24. Python 3 is needed for repository and deployment checks.
 
 ```sh
 npm ci

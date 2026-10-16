@@ -15,8 +15,11 @@ const targetPath = getLocalePath(alternateLocale);
 
 <a
   href={targetPath}
+  data-locale-switch
+  hreflang={alternateLocale}
+  lang={alternateLocale}
   class="group flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm font-medium text-muted-fg transition-all duration-200 hover:border-muted-fg/30 hover:bg-muted-fg/10 hover:text-fg focus:outline-none focus:ring-2 focus:ring-ring"
-  aria-label={t.language.toggle}
+  aria-label={`${t.language.toggle}: ${t.language[alternateLocale]}`}
   title={`${t.language.toggle}: ${t.language[alternateLocale]}`}
 >
   <svg
@@ -34,3 +37,19 @@ const targetPath = getLocalePath(alternateLocale);
   </svg>
   <span class="uppercase tracking-wider">{alternateLocale}</span>
 </a>
+
+<script>
+  import { getLocaleHash } from "../i18n/routing";
+  function syncLanguageLinks() {
+    document.querySelectorAll<HTMLAnchorElement>("a[data-locale-switch]").forEach((link) => {
+      link.hash = getLocaleHash(location.hash);
+    });
+  }
+  // Update before Astro's navigation handler, including modified clicks and keyboard activation.
+  document.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest("a[data-locale-switch]")) syncLanguageLinks();
+  }, { capture: true });
+  document.addEventListener("astro:page-load", syncLanguageLinks);
+  window.addEventListener("hashchange", syncLanguageLinks);
+  syncLanguageLinks();
+</script>
