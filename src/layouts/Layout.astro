@@ -1,23 +1,207 @@
+﻿---
+import Header from "@components/Header.astro";
+import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
+import { getSiteConfig, getSiteContent } from "@config";
+import TabNav from "@components/TabNav.astro";
+import { getTranslation, type Locale } from "../i18n";
+
+import "../styles/global.css";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  locale?: Locale;
+}
+
+const { locale = "en" } = Astro.props;
+
+const config = getSiteConfig(locale);
+const content = getSiteContent(locale);
+const t = getTranslation(locale);
+
+const {
+  title: baseTitle,
+  description: baseDescription,
+  navLinks,
+  lang,
+  siteLogo,
+  author,
+  socialLinks,
+  socialImage,
+} = config;
+
+const baseUrl = Astro.site?.href || "https://tsb-dev.fr";
+const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
+const canonicalURL = new URL(canonicalPath, baseUrl).href;
+const title = Astro.props.title || baseTitle;
+const description = Astro.props.description || baseDescription;
+const ogImgUrl = new URL(socialImage, baseUrl).href;
+const pageTitle = title;
+
+const currentPath = Astro.url.pathname.replace(/^\/(en|fr)/, "") || "/";
+const enUrl = new URL(`/en${currentPath === "/" ? "/" : `${currentPath.replace(/\/+$/, "")}/`}`, baseUrl).href;
+const frUrl = new URL(`/fr${currentPath === "/" ? "/" : `${currentPath.replace(/\/+$/, "")}/`}`, baseUrl)
+  .href;
+const personId = new URL("/#person", baseUrl).href;
+const websiteId = new URL("/#website", baseUrl).href;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person", "@id": personId,
+      name: author, alternateName: "TSB", url: new URL("/en/", baseUrl).href,
+      jobTitle: locale === "fr" ? "Ingénieur logiciel Full Stack" : "Full Stack Software Engineer",
+      worksFor: { "@type": "Organization", name: "MTAE" },
+      sameAs: socialLinks.map((link) => link.href),
+      knowsLanguage: ["en", "fr"],
+      knowsAbout: ["Java", "Spring Boot", "React", "TypeScript", "PostgreSQL", "AI integration"],
+    },
+    {
+      "@type": "WebSite", "@id": websiteId, url: baseUrl,
+      name: "Thierno Sadou BARRY — TSB", inLanguage: ["en", "fr"],
+      publisher: { "@id": personId },
+    },
+    {
+      "@type": "ProfilePage", "@id": `${canonicalURL}#webpage`,
+      url: canonicalURL, name: pageTitle, description, inLanguage: locale,
+      mainEntity: { "@id": personId }, isPartOf: { "@id": websiteId },
+      primaryImageOfPage: { "@type": "ImageObject", url: ogImgUrl, width: 1200, height: 630 },
+    },
+  ],
+};
+---
+
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Theme initialization -->
+    <script is:inline>
+      (function () {
+        function applyTheme() {
+          let savedTheme;
+          try { savedTheme = localStorage.getItem("theme"); } catch { /* Storage can be disabled. */ }
+          const theme =
+            savedTheme ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light");
+          const html = document.documentElement;
+          if (theme === "dark") {
+            html.classList.add("dark");
+            html.style.colorScheme = "dark";
+          } else {
+            html.classList.remove("dark");
+            html.style.colorScheme = "light";
+          }
+        }
+        applyTheme();
+        document.addEventListener("astro:after-swap", applyTheme);
+      })();
+    </script>
+
+    <ClientRouter fallback="swap" />
+
+    <meta name="author" content={author} />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta
+      name="theme-color"
+      content="#0e141b"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+    />
+
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="fr" href={frUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+
+
+    <title>{pageTitle}</title>
+
+    <Font cssVariable="--font-gabarito" preload />
+    <Font cssVariable="--font-be-vietnam-pro" preload />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={author} />
+    <meta property="og:locale" content={lang === "en" ? "en_US" : "fr_FR"} />
+    <meta property="og:locale:alternate" content={lang === "en" ? "fr_FR" : "en_US"} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImgUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${author} portfolio preview`} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@tsb04" />
+    <meta name="twitter:creator" content="@tsb04" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImgUrl} />
+    <meta name="twitter:image:alt" content={`${author} portfolio preview`} />
+
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+    />
+
+
+
+    <slot name="head" />
+  </head>
+
+  <body class="text-fg font-sans antialiased bg-bg">
+    <div class="bg-scene" aria-hidden="true"></div>
+    <a class="skip-link" href="#contents">{locale === "fr" ? "Aller au contenu" : "Skip to content"}</a>
+    <div class="app-shell">
+      <Header
+        siteLogo={siteLogo}
+        navLinks={navLinks}
+        locale={locale}
+      />
+
+      <div class="reader-dock" data-reader-ui="dock">
+        <TabNav sections={content.sections} locale={locale} />
+        <div class="book-controls" role="group" aria-label={locale === "fr" ? "Tourner les pages" : "Turn pages"}>
+          <button class="btn btn-secondary" data-book-step="-1" aria-label={locale === "fr" ? "Page précédente" : "Previous page"}>&larr;</button>
+          <span class="book-progress" data-book-progress role="status" aria-live="polite"></span>
+          <button class="btn btn-secondary" data-book-step="1" aria-label={locale === "fr" ? "Page suivante" : "Next page"}>&rarr;</button>
+        </div>
+      </div>
+      <main id="portfolio">
+        <slot name="opening" />
+        <section id="reading" class="portfolio-stage reading-stage" aria-label={t.book.edition} tabindex="-1">
+          <div id="book" class="book-fallback" data-continued={t.book.continued}>
+            <slot />
+          </div>
+        </section>
+        <slot name="closing" />
+      </main>
+    </div>
+  </body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+<script>
+  import "../scripts/book";
+</script>

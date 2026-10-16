@@ -1,0 +1,20 @@
+﻿---
+import CarnetPage from "./CarnetPage.astro";
+import type { Skills as SkillsContent, TranslationKeys } from "@types";
+
+interface Props { skills: SkillsContent; t: TranslationKeys; label: string; startIndex: number; total: number }
+const { skills, t, label, startIndex, total } = Astro.props;
+
+const iconModules = import.meta.glob("../assets/images/skills/*.svg", { eager: true, query: "?url", import: "default" });
+const icons = iconModules as Record<string, string>;
+const iconBySkill: Record<string, string> = {
+  "Java": "java", "Spring Boot": "springboot", "NestJS": "nestjs", "FastAPI": "fastapi", "Node.js": "nodedotjs", "GraphQL": "graphql",
+  "React": "react", "Next.js": "nextdotjs", "Angular": "angular", "TypeScript": "typescript", "JavaScript": "javascript", "Tailwind CSS": "tailwindcss", "Astro": "astro", "HTML/CSS": "html5",
+  "MySQL": "mysql", "PostgreSQL": "postgresql", "MongoDB": "mongodb", "Redis": "redis",
+  "Docker": "docker", "Traefik": "traefik", "Linux": "linux", "GitHub Actions": "githubactions", "AWS": "amazonwebservices", "Azure": "microsoftazure",
+  "Ollama": "ollama", "LLM Integration": "openai",
+};
+const pages = [skills.backend, skills.frontend, skills.database, skills.devops, skills.ai].map((items, index) => ({ ...t.skills.categories[index], items }));
+---
+
+{pages.map((page, pageIndex) => <CarnetPage id={pageIndex === 0 ? "skills" : `skills-${pageIndex + 1}`} index={startIndex + pageIndex} total={total} label={`${label} · ${page.title}`} texture="diagonal"><div class="skill-page-header"><div><h2>{page.title}</h2><p>{page.note}</p></div><span class="skill-page-count">{String(pageIndex + 1).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}</span></div><div class="skill-card-grid">{page.items.map((skill) => { const slug = iconBySkill[skill]; const icon = slug ? icons[`../assets/images/skills/${slug}.svg`] : undefined; return <article class="skill-card">{icon ? <img src={icon} alt="" width="44" height="44" loading="lazy" /> : <span class="skill-monogram" aria-hidden="true">{skill.slice(0, 2)}</span>}<div><h3>{skill}</h3><p>{slug ? t.skills.technology : t.skills.practice}</p></div></article>; })}</div></CarnetPage>)}

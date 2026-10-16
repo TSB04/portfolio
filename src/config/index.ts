@@ -1,0 +1,1 @@
+export { getSiteConfig, getSiteContent, SITE_CONFIG, SITE_CONTENT } from "./SiteConfig";

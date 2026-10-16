@@ -1,0 +1,50 @@
+﻿---
+import Layout from "@layouts/Layout.astro";
+import FrontCover from "@components/FrontCover.astro";
+import BookExperience from "@components/BookExperience.astro";
+import BookProjects from "@components/BookProjects.astro";
+import Skills from "@components/Skills.astro";
+import BookAbout from "@components/BookAbout.astro";
+import BookExtras from "@components/BookExtras.astro";
+import BackCover from "@components/BackCover.astro";
+import { getSiteConfig, getSiteContent } from "@config";
+import { getGitHubProjects } from "../../lib/github";
+import { getTranslation, isValidLocale, defaultLocale, type Locale } from "@i18n";
+
+export function getStaticPaths() {
+  return [
+    { params: { locale: "en" } },
+    { params: { locale: "fr" } },
+  ];
+}
+
+const { locale: rawLocale } = Astro.params;
+const locale: Locale = isValidLocale(rawLocale!) ? rawLocale : defaultLocale;
+
+const config = getSiteConfig(locale);
+const baseContent = getSiteContent(locale);
+const projects = await getGitHubProjects(locale, baseContent.projects);
+const usesGitHub = projects.some((project) => project.github);
+const content = { ...baseContent, projects, openSource: usesGitHub ? projects.filter((project) => project.github?.license && !project.github.private) : baseContent.openSource };
+const hasCommunity = content.openSource.length > 0;
+const t = getTranslation(locale);
+
+// Titre localisé via les traductions (plus propre que le ternaire)
+const pageTitle = `${config.author} — ${t.hero.role || "Full Stack Engineer"}`;
+const skillPageCount = 5;
+const totalPages = content.experience.length + content.projects.length + skillPageCount + 4 + Number(hasCommunity);
+const skillsIndex = content.experience.length + content.projects.length + 2;
+---
+
+<Layout title={pageTitle} description={config.description} locale={locale}>
+  <FrontCover slot="opening" {...content.hero} t={t} />
+  <BookExtras kind="contents" {content} {t} index={1} total={totalPages} />
+  <BookExperience startIndex={2} experience={content.experience} t={t} label={content.sections[0].eyebrow} total={totalPages} />
+  <BookProjects projects={content.projects} t={t} {locale} label={content.sections[1].eyebrow} startIndex={content.experience.length + 2} total={totalPages} />
+  <Skills skills={content.skills} t={t} label={content.sections[2].eyebrow} startIndex={skillsIndex} total={totalPages} />
+  <BookAbout {...content.about} name={content.hero.name} t={t} label={content.sections[3].eyebrow} index={skillsIndex + skillPageCount} total={totalPages} />
+  <BookExtras kind="education" {content} {t} index={skillsIndex + skillPageCount + 1} total={totalPages} />
+  <BookExtras kind="principles" {content} {t} index={skillsIndex + skillPageCount + 2} total={totalPages} />
+  {hasCommunity && <BookExtras kind="community" {content} {t} index={skillsIndex + skillPageCount + 3} total={totalPages} />}
+  <BackCover slot="closing" contact={content.contact} author={config.author} socialLinks={config.socialLinks} t={t} />
+</Layout>

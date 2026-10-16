@@ -1,0 +1,7 @@
+---
+// Keep old shared URLs without indexing the unfinished duplicate card.
+export function getStaticPaths() {
+  return [{ params: { locale: "en" } }, { params: { locale: "fr" } }];
+}
+return Astro.redirect(`/${Astro.params.locale}/`, 301);
+---

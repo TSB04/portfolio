@@ -1,0 +1,120 @@
+---
+import ThemeToggle from "./ThemeToggle.astro";
+import LanguageToggle from "./LanguageToggle.astro";
+import OptimizedImage from "@components/OptimizedImage.astro";
+import { getTranslation } from "@i18n";
+import Menu from "@icons/Menu.astro";
+import type { Locale } from "../types";
+
+export interface Props {
+  siteLogo: ImageMetadata;
+  navLinks: { text: string; href: string }[];
+  locale?: Locale;
+}
+
+const { siteLogo, navLinks, locale = "en" } = Astro.props;
+
+const homeHref = `/${locale}/#hero`;
+const t = getTranslation(locale);
+---
+
+<header
+  id="site-header"
+  data-reader-ui="header"
+  class="fixed inset-x-0 top-0 z-50 border-b border-transparent bg-bg/70 backdrop-blur-xl transition-all duration-300"
+>
+  <nav class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+
+    <a href={homeHref} class="group" aria-label={t.nav.home}>
+      <OptimizedImage
+        src={siteLogo}
+        width={95}
+        height={52}
+        alt="TSB — Thierno Sadou BARRY"
+        priority
+        class="rounded-full ring-1 ring-border transition duration-300 group-hover:scale-105"
+      />
+    </a>
+
+    <button
+      id="menu-button"
+      class="sm:hidden"
+      aria-label={t.nav.menu}
+      aria-expanded="false"
+      aria-controls="main-menu"
+    >
+      <Menu />
+    </button>
+
+    <nav
+      id="main-menu"
+      class="absolute right-5 top-20 hidden rounded-xl border border-border bg-bg/95 p-5 shadow-xl sm:static sm:block sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
+    >
+      <ul class="flex flex-col gap-2 sm:flex-row sm:gap-8">
+        {
+          navLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="nav-item relative text-sm font-medium text-muted-fg transition duration-300 hover:text-fg after:absolute after:-bottom-2 after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:bg-primary after:transition-all after:duration-300"
+              >
+                {link.text}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <ThemeToggle locale={locale} />
+      <LanguageToggle locale={locale} />
+    </div>
+
+  </nav>
+</header>
+
+<script>
+  let dispose: (() => void) | undefined;
+  function initNavigation() {
+    dispose?.();
+    const button = document.getElementById("menu-button");
+    const menu = document.getElementById("main-menu");
+    if (!button || !menu) return;
+    const controller = new AbortController();
+    const { signal } = controller;
+    const close = () => { menu.classList.add("hidden"); button.setAttribute("aria-expanded", "false"); };
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") !== "true";
+      menu.classList.toggle("hidden", !open);
+      button.setAttribute("aria-expanded", String(open));
+    }, { signal });
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("#main-menu a") || !target.closest("#site-header")) close();
+    }, { signal });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && button.getAttribute("aria-expanded") === "true") { close(); button.focus(); }
+    }, { signal });
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>(".nav-item, [data-tab-for]"));
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".booklet-page"));
+    const visible = new Map<Element, number>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { visible.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0); });
+      if (document.body.classList.contains("book-turn-active")) return;
+      const current = sections.reduce<HTMLElement | undefined>((best, section) => (visible.get(section) ?? 0) > (best ? visible.get(best) ?? 0 : 0) ? section : best, undefined);
+      if (!current) return;
+      const id = current.id.replace(/-\d+$/, "");
+      links.forEach((link) => {
+        const active = link.hash === `#${id}`;
+        link.classList.toggle("is-active", active);
+        if (active) link.setAttribute("aria-current", "location"); else link.removeAttribute("aria-current");
+      });
+    }, { threshold: [0, .15, .35, .55, .75] });
+    sections.forEach((section) => observer.observe(section));
+    dispose = () => { controller.abort(); observer.disconnect(); };
+  }
+  document.addEventListener("astro:page-load", initNavigation);
+  document.addEventListener("astro:before-swap", () => dispose?.());
+</script>

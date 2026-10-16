@@ -1,0 +1,28 @@
+---
+interface Props {
+    text: string;
+    href: string;
+}
+
+const { text, href } = Astro.props;
+---
+
+<section
+    id={href}
+    class="page snap-start snap-always relative flex min-h-[calc(100svh-5rem)] flex-col justify-center px-6 py-12 lg:px-16 bg-bg"
+>
+    <div class="container-tight flex h-full w-full flex-col justify-center">
+        <h2 class="mb-12 font-serif text-5xl font-bold tracking-tight lg:text-6xl text-gradient">
+            {text}
+        </h2>
+
+        <div class="flex-1">
+            <slot />
+        </div>
+    </div>
+
+    <!-- Optional: subtle page indicator -->
+    <span class="absolute bottom-8 right-8 font-mono text-xs text-fg-subtle opacity-40 uppercase tracking-widest">
+        {href}
+    </span>
+</section>
