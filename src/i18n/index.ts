@@ -14,7 +14,6 @@ export function isValidLocale(locale: string): locale is Locale {
   return locales.includes(locale as Locale);
 }
 
-// ⬇️ NOUVEAU : Helper pour le switch de langue
 export function getAlternateLocale(current: Locale): Locale {
   return current === "en" ? "fr" : "en";
 }

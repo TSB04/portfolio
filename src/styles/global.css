@@ -98,7 +98,7 @@
   /* Text — cool, high-contrast on dark */
   --fg:            #e8edf6;
   --fg-muted:      #93a1b8;
-  --fg-subtle:     #5c6b84;
+  --fg-subtle:     #8190a8;
   --fg-inverse:    #060a13;
 
   /* Borders */
@@ -142,7 +142,7 @@
   /* Text */
   --fg:            #161a23;
   --fg-muted:      #4c5566;
-  --fg-subtle:     #8a93a5;
+  --fg-subtle:     #5e6a7d;
   --fg-inverse:    #ffffff;
 
   /* Borders */
@@ -163,7 +163,7 @@
   --accent-muted:  #cffafe;
 
   /* Status */
-  --success:       #059669;
+  --success:       #047857;
   --success-muted: #d1fae5;
   --warning:       #d97706;
   --warning-muted: #fef3c7;
@@ -754,8 +754,8 @@ body[data-portfolio-view="start"] #hero, body[data-portfolio-view="book"] #readi
 .book-turn-active .skill-card p { font-size: .65rem; }
 .book-turn-active .skill-page-header { flex-direction: column; align-items: start; gap: .5rem; margin-bottom: 1rem; }
 .book-turn-active .page-number { bottom: .75rem; right: 1rem; z-index: 3; padding: .25rem .5rem; background: var(--surface); border-radius: .5rem; pointer-events: none; }
-.book-turn-active .portrait { width: min(100%, 12rem); margin-inline: auto; }
-.book-turn-active .portrait img { max-height: min(24cqh, 12rem); aspect-ratio: 4 / 3; }
+.book-turn-active .portrait { width: min(100%, 25rem); margin-inline: auto; padding: .5rem; transform: none; }
+.book-turn-active .portrait img { max-height: min(52cqh, 31rem); aspect-ratio: 4 / 5; object-position: center top; }
 .contents-intro { margin-bottom: 1.5rem; font-size: .9rem; }
 .contents-list, .notes-list { display: grid; gap: .65rem; }
 .contents-link { display: grid; grid-template-columns: 2rem 1fr auto; align-items: center; gap: .75rem; padding: .55rem .8rem; border: 1px solid var(--glass-border); border-radius: .85rem; background: var(--glass-bg); color: var(--fg); transition: border-color .2s, background .2s; }

@@ -257,7 +257,7 @@ export async function getGitHubProjects(locale: Locale, fallback: ProjectItem[],
   return projects.map((repo) => {
     const custom = fallback.find((project) => project.linkSource.toLowerCase() === repo.url.toLowerCase());
     return {
-      name: repo.name, summary: repo.description || repo.readmeExcerpt || (locale === "fr" ? "Consultez le dépôt pour découvrir ce projet." : "Explore the repository to learn about this project."),
+      name: repo.name, summary: repo.description || (locale === "en" ? repo.readmeExcerpt : "") || (locale === "fr" ? `Projet ${repo.name}. Les informations disponibles et les langages du dépôt sont présentés ci-dessous.` : `Project ${repo.name}. Available repository details and languages are presented below.`),
       linkSource: repo.private ? "" : repo.url, linkPreview: repo.homepage, image: custom?.image || fallback[0].image,
       tags: [...new Set([repo.language, ...repo.topics].filter((tag): tag is string => !!tag))],
       github: { private: repo.private, fullName: repo.fullName, stars: repo.stars, forks: repo.forks, updatedAt: repo.updatedAt, license: repo.license, language: repo.language, languages: repo.languages, readmeUrl: repo.private ? "" : `${repo.url}#readme`, readmeExcerpt: repo.description ? repo.readmeExcerpt : "", hasImage: !!custom,

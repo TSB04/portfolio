@@ -27,13 +27,16 @@ const t = getTranslation(locale);
 <script is:inline data-astro-rerun>
   (function () {
     function getTheme() {
-      const stored = localStorage.getItem("theme");
+      let stored;
+      try { stored = localStorage.getItem("theme"); } catch { /* Storage may be unavailable. */ }
       if (stored === "light" || stored === "dark") return stored;
+      if (document.documentElement.classList.contains("dark")) return "dark";
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
 
     function setTheme(theme) {
-      localStorage.setItem("theme", theme);
+      window.__portfolioTheme = theme;
+      try { localStorage.setItem("theme", theme); } catch { /* The theme still works for this visit. */ }
       // Query fresh every time — don't cache in closure
       const root = document.documentElement;
       if (theme === "dark") {
@@ -62,7 +65,7 @@ const t = getTranslation(locale);
       const fresh = toggle.cloneNode(true);
       toggle.parentNode?.replaceChild(fresh, toggle);
       fresh.addEventListener("click", () => {
-        setTheme(getTheme() === "dark" ? "light" : "dark");
+        setTheme(document.documentElement.classList.contains("dark") ? "light" : "dark");
       });
     }
 

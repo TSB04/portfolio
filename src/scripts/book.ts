@@ -173,15 +173,21 @@ function initBook() {
     const key = `${geometry.width}:${geometry.height}`;
     if (!force && key === previousSize) return;
     previousSize = key;
-    const sourceId = pages[flip.getCurrentPageIndex()]?.dataset.sourceId;
+    const anchor = location.hash.slice(1);
+    const sourceId = (pages.find((page) => page.id === anchor) ?? pages[flip.getCurrentPageIndex()])?.dataset.sourceId;
     const newPages = paginate(sources, geometry.width, geometry.height, continued);
     entrance.forEach((animation) => animation.cancel());
     flip.turnToPage(0);
     pages = newPages; pageMap = new Map(pages.map((page, index) => [page.id, index]));
     Object.assign(flip.getSettings(), geometry);
     flip.updateFromHtml(pages); flip.update();
-    flip.turnToPage(Math.max(0, pages.findIndex((page) => page.dataset.sourceId === sourceId)));
+    const exactIndex = pages.findIndex((page) => page.id === anchor);
+    const targetIndex = Math.max(0, exactIndex >= 0 ? exactIndex : pages.findIndex((page) => page.dataset.sourceId === sourceId));
+    flip.turnToPage(targetIndex);
     sync(flip.getCurrentPageIndex(), false);
+    // A landscape spread can start in the preceding chapter. Keep the requested chapter
+    // instead of replacing it with that left-hand page when fonts or geometry change.
+    if (view === "book") remember(pages[targetIndex].id);
   }
   const resize = new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = window.setTimeout(() => reflow(), 180); });
   resize.observe(book);

@@ -5,4 +5,4 @@ import type { AboutContent, HeroContent, TranslationKeys } from "@types";
 type Props = AboutContent & Pick<HeroContent, "name"> & { t: TranslationKeys; label: string; index: number; total: number };
 const { description, image, imageDark, name, t, label, index, total } = Astro.props;
 ---
-<CarnetPage id="about" {index} {total} label={label} texture="lines"><div class="page-spread about-spread"><div class="portrait"><ThemePortrait {image} {imageDark} alt={name} width={560} height={680} /></div><div><h2>{t.about.title}</h2>{description.split("\n\n").map((paragraph) => <p>{paragraph}</p>)}</div></div></CarnetPage>
+<CarnetPage id="about" {index} {total} label={label} texture="lines"><div class="page-heading"><h2>{t.about.title}</h2></div><div class="page-spread about-spread"><div class="portrait"><ThemePortrait {image} {imageDark} alt={name} width={800} height={1000} /></div><div>{description.split("\n\n").map((paragraph) => <p>{paragraph}</p>)}</div></div></CarnetPage>

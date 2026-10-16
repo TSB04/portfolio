@@ -1,4 +1,6 @@
 import type { SiteConfig, SiteContent, Locale } from "../types";
+import { getTranslation } from "@i18n";
+import { frenchProjectSummaries } from "./projectTranslations";
 
 import logo from "@images/logo.png";
 import saayAgent from "@images/projects/saay/saay-studio-logo.png";
@@ -203,7 +205,7 @@ const baseContent: SiteContent = {
     {
       institution: "ESTIAM Paris",
       degree: "Master Informatique Appliquée",
-      field: "Web & Mobile Development (WMD)",
+      field: "Développement web et mobile (WMD)",
       startDate: "2023",
       endDate: "2025",
       location: "Paris, France",
@@ -579,6 +581,8 @@ Outside of client work, I maintain a homelab for continuous experimentation with
 
 const frContent: SiteContent = {
   ...baseContent,
+  projects: baseContent.projects.map((project) => ({ ...project, summary: frenchProjectSummaries[project.name.toLowerCase().replace(/[^a-z0-9]/g, "")] ?? project.summary })),
+  openSource: baseContent.openSource.map((project) => ({ ...project, summary: frenchProjectSummaries[project.name.toLowerCase().replace(/[^a-z0-9]/g, "")] ?? project.summary })),
 
   hero: {
     ...baseContent.hero,
@@ -622,7 +626,7 @@ const frContent: SiteContent = {
     {
       ...baseContent.education[0],
       degree: "Master Informatique Appliquée",
-      field: "Web & Mobile Development (WMD)",
+      field: "Développement web et mobile (WMD)",
       highlights: [
         "Spécialisation en développement full stack, architectures cloud-native et systèmes distribués.",
         "Direction de multiples projets agiles et participations à des hackathons (GreenNext, Swift Student Challenge).",
@@ -669,6 +673,7 @@ const frContent: SiteContent = {
     },
     {
       ...baseContent.certifications[2],
+      name: "AWS Cloud Practitioner (en cours)",
       description:
         "Connaissances fondamentales du cloud et aperçu des services AWS.",
     },
@@ -744,20 +749,18 @@ En dehors du travail client, je maintiens un homelab pour l'expérimentation con
 };
 
 export function getSiteConfig(locale: Locale = "en"): SiteConfig {
+  const t = getTranslation(locale);
   return {
     ...baseConfig,
     lang: locale,
-    navLinks:
-      locale === "fr"
-        ? [
-            { text: "Expérience", href: "#experience" },
-            { text: "Projets", href: "#projects" },
-            { text: "Compétences", href: "#skills" },
-            { text: "À propos", href: "#about" },
-            { text: "Contact", href: "#contact" },
-          ]
-        : baseConfig.navLinks,
-    title: locale === "fr" ? "TSB — Ingénieur Full Stack" : baseConfig.title,
+    navLinks: [
+      { text: t.nav.experience, href: "#experience" },
+      { text: t.nav.projects, href: "#projects" },
+      { text: t.nav.skills, href: "#skills" },
+      { text: t.nav.about, href: "#about" },
+      { text: t.nav.contact, href: "#contact" },
+    ],
+    title: `TSB — ${t.hero.role}`,
     description:
       locale === "fr"
         ? "Thierno Sadou BARRY, ingénieur Full Stack à Paris : Java, Spring Boot, React et IA. Découvrez mes projets, mon parcours et mes disponibilités freelance."

@@ -10,7 +10,7 @@ const illustrations = new Map(await Promise.all(projects.filter((project) => pro
   return [project.name, full.src] as const;
 })));
 const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(value));
-const size = (kb: number) => `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(kb / 1024)} MB`;
+const size = (kb: number) => new Intl.NumberFormat(locale, { style: "unit", unit: kb >= 1024 ? "megabyte" : "kilobyte", maximumFractionDigits: 1 }).format(kb >= 1024 ? kb / 1024 : kb);
 ---
 
 {projects.map((project, index) => (
