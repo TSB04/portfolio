@@ -944,3 +944,28 @@ body[data-book-orientation="landscape"] #book::after { content: ""; position: ab
   .book-turn-active .page-inner { height: auto; overflow: visible; padding: 2rem 0; }
   .reader-dock { display: none !important; }
 }
+
+/* Detailed artwork gets its own full-width reading area; logos stay compact. */
+.project-card-prose { grid-template-columns: 1fr; }
+.project-overview { display: grid; gap: .9rem; }
+.project-card .project-overview p { margin: 0; }
+.project-featured-badge { color: var(--primary); border-color: var(--primary); margin-block: .25rem; }
+.project-illustration { margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 1rem; background: var(--elevated); }
+.project-illustration > a { display: block; color: var(--fg); }
+.project-illustration img { display: block; width: 100%; height: auto; object-fit: contain; }
+.project-illustration a:focus-visible { outline: 3px solid var(--primary); outline-offset: -3px; }
+.project-image-prompt { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .75rem 1rem; border-top: 1px solid var(--border); color: var(--fg-muted); font-size: .75rem; }
+.book-turn-active .project-illustration img { max-height: 52cqh; }
+.book-turn-active .project-card-prose { grid-template-columns: 1fr; }
+.project-image-dialog { position: fixed; inset: 0; margin: auto; width: min(96vw, 100rem); height: 92dvh; max-width: 96vw; max-height: 92dvh; padding: 0; border: 1px solid var(--border); border-radius: 1.25rem; color: var(--fg); background: var(--surface); box-shadow: 0 2rem 6rem #0005; }
+.project-image-dialog[open] { display: flex; flex-direction: column; }
+.project-image-dialog::backdrop { background: #000b; backdrop-filter: blur(8px); }
+.project-image-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1.25rem; padding: .8rem 1rem; border-bottom: 1px solid var(--border); }
+.project-image-toolbar h2 { margin-right: auto; font-size: 1.1rem; }
+.project-image-toolbar > a { color: var(--primary); font-size: .8rem; }
+.project-image-toolbar button { font-size: .8rem; }
+.project-image-canvas { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; cursor: zoom-in; }
+.project-image-canvas img { display: block; width: 100%; height: auto; max-width: none; }
+.project-image-canvas.is-zoomed { cursor: zoom-out; }
+.project-image-canvas.is-zoomed img { width: auto; max-width: none; }
+@media print { .project-image-dialog { display: none; } }

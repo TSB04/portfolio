@@ -1,9 +1,14 @@
 ﻿---
+import { getImage } from "astro:assets";
 import CarnetPage from "./CarnetPage.astro";
 import OptimizedImage from "./OptimizedImage.astro";
 import type { Locale, ProjectItem, TranslationKeys } from "@types";
 interface Props { projects: ProjectItem[]; t: TranslationKeys; locale?: Locale; label: string; startIndex: number; total: number }
 const { projects, t, locale = "en", label, startIndex, total } = Astro.props;
+const illustrations = new Map(await Promise.all(projects.filter((project) => project.imageKind === "illustration").map(async (project) => {
+  const full = await getImage({ src: project.image, width: Math.min(project.image.width, 2400), format: "webp", quality: 92 });
+  return [project.name, full.src] as const;
+})));
 const date = (value: string) => new Intl.DateTimeFormat(locale, { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(value));
 const size = (kb: number) => `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(kb / 1024)} MB`;
 ---
@@ -13,11 +18,18 @@ const size = (kb: number) => `${new Intl.NumberFormat(locale, { maximumFractionD
     <div class="project-page">
       <div class="page-heading">
         <h2>{project.name}</h2>
+        {project.featured && <span class="badge project-featured-badge">{t.projects.featured}</span>}
         <p>{project.github?.fullName ?? `${t.projects.title} ${String(index + 1).padStart(2, "0")} / ${String(projects.length).padStart(2, "0")}`}</p>
         {project.github && <div class="repo-heading-meta"><span class="badge">{project.github.private ? t.projects.privateRepository : t.projects.publicRepository}</span>{project.github.defaultBranch && <span class="repo-branch"><span aria-hidden="true">⑂</span> {project.github.defaultBranch}</span>}</div>}
       </div>
-      <article class="project-card project-card-featured">
-        {(!project.github || project.github.hasImage) ? (
+      {project.imageKind === "illustration" && <figure class="project-illustration">
+        <a href={illustrations.get(project.name)} data-project-image data-astro-reload data-image-title={project.name} data-image-width={Math.min(project.image.width, 2400)} data-image-height={Math.round(Math.min(project.image.width, 2400) * project.image.height / project.image.width)} aria-label={`${t.projects.enlargeImage}: ${project.name}`}>
+          <OptimizedImage src={project.image} alt={project.name} width={Math.min(project.image.width, 1400)} height={Math.round(Math.min(project.image.width, 1400) * project.image.height / project.image.width)} />
+          <span class="project-image-prompt">{t.projects.enlargeImage} <span aria-hidden="true">&#8599;</span></span>
+        </a>
+      </figure>}
+      <article class:list={["project-card", "project-card-featured", { "project-card-prose": project.imageKind === "illustration" }]}>
+        {project.imageKind !== "illustration" && ((!project.github || project.github.hasImage) ? (
           <div class:list={["project-visual", { "project-visual-brand": project.imageFit === "contain" }]}><OptimizedImage src={project.image} alt={project.name} width={900} height={Math.round(900 * project.image.height / project.image.width)} /></div>
         ) : (
           <div class="repo-art" aria-hidden="true">
@@ -27,15 +39,15 @@ const size = (kb: number) => `${new Intl.NumberFormat(locale, { maximumFractionD
             </svg>
             <span>{project.github.language ?? "GitHub"}</span>
           </div>
-        )}
+        ))}
         <div>
           <h3 class="repo-section-label">{t.projects.overview}</h3>
-          <p>{project.summary}</p>
+          <div class="project-overview">{(project.overview ?? [project.summary]).map((paragraph) => <p>{paragraph}</p>)}</div>
           <div class="project-tags">{project.tags.map((tag) => <span class="badge">{tag}</span>)}</div>
           {project.github && (
             <dl class="repo-metadata">
-              <div><dt>{t.projects.stars}</dt><dd>{project.github.stars.toLocaleString(locale)}</dd></div>
-              <div><dt>{t.projects.forks}</dt><dd>{project.github.forks.toLocaleString(locale)}</dd></div>
+              {project.github.stars > 0 && <div><dt>{t.projects.stars}</dt><dd>{project.github.stars.toLocaleString(locale)}</dd></div>}
+              {project.github.forks > 0 && <div><dt>{t.projects.forks}</dt><dd>{project.github.forks.toLocaleString(locale)}</dd></div>}
               <div><dt>{t.projects.updated}</dt><dd><time datetime={project.github.updatedAt}>{date(project.github.updatedAt)}</time></dd></div>
               {project.github.license && <div><dt>{t.projects.license}</dt><dd>{project.github.license}</dd></div>}
               {project.github.createdAt && <div><dt>{t.projects.created}</dt><dd><time datetime={project.github.createdAt}>{date(project.github.createdAt)}</time></dd></div>}

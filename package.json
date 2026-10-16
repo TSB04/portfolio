@@ -10,7 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test:github": "node --experimental-strip-types --test tests/github.test.mjs",
+    "test:github": "node --experimental-strip-types --test tests/github.test.mjs tests/project-presentation.test.mjs",
     "check:seo": "node scripts/check-seo.mjs",
     "generate:social": "node scripts/generate-social-image.mjs",
     "check:public": "python scripts/check-public-repo.py"

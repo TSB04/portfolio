@@ -1,4 +1,5 @@
 ﻿---
+import ProjectImageViewer from "@components/ProjectImageViewer.astro";
 import Header from "@components/Header.astro";
 import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
@@ -198,6 +199,7 @@ const structuredData = {
         </section>
         <slot name="closing" />
       </main>
+      <ProjectImageViewer {t} />
     </div>
   </body>
 </html>
