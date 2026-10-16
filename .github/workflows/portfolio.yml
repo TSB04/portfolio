@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: portfolio-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   validate:
@@ -22,11 +22,26 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Scan Git history for secrets
+        shell: bash
+        env:
+          GITLEAKS_VERSION: '8.30.1'
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            --output "$RUNNER_TEMP/gitleaks.tar.gz"
+          printf '%s  %s\n' "$GITLEAKS_SHA256" "$RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git . --log-opts=--all --redact --no-banner
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm run check:public
       - run: npm run astro check
       - run: npm run test:github
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
@@ -37,6 +52,11 @@ jobs:
           GITHUB_PRIVATE_KEY: ${{ secrets.PORTFOLIO_GITHUB_PRIVATE_KEY }}
         run: npm run build
       - run: npm run check:seo
+      - name: Scan generated public output
+        shell: bash
+        run: |
+          python3 scripts/check-public-repo.py --build
+          "$RUNNER_TEMP/gitleaks" dir dist --redact --no-banner
       - run: python3 scripts/deploy.py package
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:

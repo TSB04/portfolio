@@ -34,7 +34,7 @@ The Nginx configuration changes take effect only when deployed; static redirect 
 4. Check that the two locale pages, robots, both sitemap files, and social PNG return HTTP 200; root, legacy, and alternate-host URLs should redirect permanently. Missing paths must return HTTP 404 rather than the homepage.
 5. Check PageSpeed Insights/Core Web Vitals on mobile after deployment. No Lighthouse score or browser performance measurement is claimed by the repository checks.
 
-This audit could not fetch the live domain through the available web reader. Local build checks do not establish that this release is deployed or indexed. No Search Console access or production deployment was performed as part of the audit.
+Local SEO checks validate generated files. The production pipeline separately verifies the publicly served commit/build and SEO resources after deployment. Search Console ownership, indexing, rich results, and browser performance are not verified automatically.
 
 ## Content opportunities
 

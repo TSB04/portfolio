@@ -1,0 +1,5 @@
+{
+  "ingress_container": "your-ingress-container",
+  "ingress_extra": "/path/to/private/ingress-extra.conf",
+  "docker_network": "your-existing-network"
+}

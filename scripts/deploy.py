@@ -12,6 +12,7 @@ import tarfile
 import time
 import shutil
 import os
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,10 +20,13 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=("package", "deploy", "tls"))
-    parser.add_argument("--host", default="tsb04-prod@192.168.1.160")
-    parser.add_argument("--jump", default="root@127.0.0.1:2222")
+    parser.add_argument("--host", default=os.environ.get("PORTFOLIO_SSH_HOST", ""))
+    parser.add_argument("--jump", default=os.environ.get("PORTFOLIO_SSH_JUMP", ""))
     args = parser.parse_args()
+    if args.action != "package" and not args.host:
+        parser.error("Set PORTFOLIO_SSH_HOST or pass --host; keep operator settings outside the repository")
     if args.action != "tls":
+        subprocess.run([sys.executable, "scripts/check-public-repo.py", "--build"], cwd=ROOT, check=True)
         subprocess.run(["node", "scripts/check-seo.mjs"], cwd=ROOT, check=True)
     for target in (args.host, args.jump):
         if target and (target.startswith("-") or not re.fullmatch(r"[A-Za-z0-9_.@:-]+", target)):
@@ -52,7 +56,7 @@ def main():
             if source.is_symlink(): raise ValueError("Do not deploy symlinked output")
             if not source.is_file(): continue
             relative = source.relative_to(dist)
-            if any(part.startswith(".env") for part in relative.parts) or source.suffix.lower() in (".pem", ".key"):
+            if any(part.startswith(".env") or part in (".git", ".ssh", ".aws", ".azure", ".kube", ".private") for part in relative.parts) or source.suffix.lower() in (".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".db", ".sqlite", ".sqlite3") or source.name.lower() in ("operator.json", ".npmrc", ".netrc", "credentials.json"):
                 raise ValueError("Private file in output")
             if b"PRIVATE KEY-----" in source.read_bytes(): raise ValueError("Signing material in output")
             archive.add(source, arcname="site/" + relative.as_posix(), recursive=False)

@@ -1,55 +1,57 @@
-# Production deployment
+# Deployment and recovery
 
-The portfolio is served at **https://tsb-dev.fr/**. HTTP redirects to HTTPS. Both `/en/` and `/fr/` are static pages; the root page opens the English version. `www.tsb-dev.fr` is also covered by the certificate.
+## Normal releases
 
-## Infrastructure
+Merge a validated pull request from `dev` into `main`. The [CI/CD pipeline](CICD.md) builds once, publishes a checksummed release, and verifies the deployed commit and build identifier. Production pulls over outbound HTTPS; no production SSH credentials are stored in GitHub Actions.
 
-- Production: `tsb04-prod@192.168.1.160` (`ubuntu-prod`), public IPv4 `82.64.250.254`.
-- Verified SSH route from this workstation: `root@127.0.0.1:2222` jump gateway. Host-key checking remains enabled.
-- Dedicated service: Compose project `tsb-portfolio`, container `tsb-portfolio`.
-- Operator directory: `/home/tsb04-prod/tsb-portfolio`.
-- Releases: `releases/<UTC-timestamp>-<artifact-hash>/site`; `current` selects the active static root.
-- Internal origin alias: `tsb-portfolio-origin`, on the existing external `sunustream_sunustream` network. No additional host ports are published.
-- Shared TLS ingress: `sunustream-nginx`. The portfolio virtual host is retained in `sunustream-cd/control/ingress-extra.conf` and the active ingress template. Saay and SunuStream routes are preserved.
+Only the public static website, generic deployment templates, and promotion script are release assets. Never put secrets, private inventory, operator configuration, or backups in a release.
 
-## Deliver a new release
+## Private operator configuration
 
-The default workflow is now to merge into `main`. GitHub Actions validates and packages the exact commit; the production host pulls its release over HTTPS and the workflow verifies the deployed commit. See [CI/CD](CICD.md). The SSH workflow below remains available for manual recovery.
+Connection addresses, SSH accounts, gateway settings, and infrastructure inventory belong outside this public checkout.
 
-From this checkout, with the Saay gateway available:
+On the deployment host, create `~/tsb-portfolio/operator.json` using the structure in [operator.example.json](../deploy/operator.example.json). Set its real ingress container, ingress extension path, and existing Docker network privately; restrict the file to the deployment account with mode `0600`. The promoter loads this file locally and passes the network setting to Compose. It is never included in the release bundle.
 
-```powershell
-npm run test:github
+The deployment account needs Python 3, Docker/Compose access, and permission to update the configured ingress files. The ingress must retain valid TLS certificates for the configured public domains. Keep DNS and certificate-renewal configuration in the private operations runbook.
+
+## Manual release
+
+Use this for recovery or a deliberate manual release from reviewed source:
+
+```sh
+npm run check:public
 npm run astro check
+npm run test:github
+python -m unittest discover -s tests -p 'test_*.py'
 npm run build
 npm run check:seo
-python scripts/deploy.py deploy
+python scripts/deploy.py deploy --host deploy-user@example.invalid
 ```
 
-The delivery client snapshots the **built `dist/` output**, not the Git index or repository history. It uploads a SHA-256-verified archive and the reviewed Nginx/Compose configuration over SSH. Local artifacts are kept under ignored `.deploy/`. The server retains versioned releases and configuration backups, recreates only the portfolio service, validates the shared Nginx configuration, and gracefully reloads the ingress.
+Replace the example destination privately. An optional gateway can be supplied with `--jump`. Alternatively, set `PORTFOLIO_SSH_HOST` and `PORTFOLIO_SSH_JUMP` in your local shell or private secret store. There is no production destination embedded in the script. Host-key verification stays enabled.
 
-Environment files, Git metadata, private keys, and the GitHub cache are not deployed. GitHub data is already rendered into the static build. To use App authentication for a future build, provide the actual key on the machine performing that build; the currently configured path is a production placeholder.
+`python scripts/deploy.py package` validates and packages without SSH. Local release files are written under ignored `.deploy/`. The packaging step rejects private file types, credential material, and private operator configuration before upload.
 
-Failed promotion restores the previous portfolio release when available, along with the prior ingress configuration. On a first deployment there is no earlier portfolio release; failure stops the new service and restores the ingress. No existing application volumes are removed.
+## TLS configuration
 
-## HTTPS
+After the operator has provisioned certificates and reviewed the ingress template:
 
-The Let's Encrypt certificate covers `tsb-dev.fr` and `www.tsb-dev.fr`. DNS A records must resolve to `82.64.250.254`; stale AAAA records should not route visitors elsewhere.
-
-The host's existing `certbot.timer` is enabled and active. Its webroot is `/var/www/certbot`; shared ingress serves ACME challenges independently of the portfolio container. The existing host deployment hook reloads `sunustream-nginx` after renewal.
-
-Certificate creation was performed with the installed Certbot Docker image. Its host-oriented reload hook could not run inside the container, so ingress was explicitly reloaded and TLS verified during promotion. The hook command uses `/usr/bin/docker`, which is available in the host timer's environment. A non-destructive renewal dry-run validates domain challenges with directory hooks disabled inside the container.
-
-After provisioning or renewing a certificate manually, the reviewed HTTPS route can be applied using:
-
-```powershell
-python scripts/deploy.py tls
+```sh
+python scripts/deploy.py tls --host deploy-user@example.invalid
 ```
 
-## Verification and recovery
+The script validates Nginx and reloads the configured ingress. It does not create certificates or change DNS.
 
-Read `/home/tsb04-prod/tsb-portfolio/deployment.json` for the active artifact hash, release, previous site path, and TLS state. Backups are under `backups/` with private permissions. Keep existing releases, backups, and shared ingress extension files; do not use `docker compose down -v` or prune shared application data.
+## State and recovery
 
-The portfolio container has a locale-page health check. Test public pages and hashed assets after changes, then check that `https://saay.store/` and `https://sunuflix.online/` still respond.
+Private deployment state is stored under `~/tsb-portfolio/`:
 
-The first release was verified on 16 October 2026: both locale pages, presentation/book/contact transitions, GitHub project details, mobile layout, valid HTTPS, and existing neighboring services passed. Public browser verification reported no failed assets or JavaScript errors.
+- `deployment.json`: active release, commit, checksum, and previous release.
+- `releases/`: versioned site files; `current` selects the active site.
+- `backups/`: private configuration backups.
+- `pull-release.log`: rotated deployment logs.
+- `operator.json`: private infrastructure bindings.
+
+Promotions serialize access, validate archive paths and hashes, preserve existing ingress routes, and check both locales and public SEO resources. Failure restores the previous site/configuration when available. Do not delete shared application volumes or unrelated ingress blocks while recovering this site.
+
+Check the live URLs and neighboring applications using the private runbook. For a lasting rollback, merge a source revert into `main`; otherwise the deployment service continues following the current main release.

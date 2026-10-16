@@ -15,7 +15,7 @@ When the key is available, the integration signs a short-lived RS256 JWT and exc
 
 The production key path may be a placeholder locally. A missing key file, or no App configuration, selects the public API. Invalid keys or failed authentication use previously cached project metadata, or the existing local portfolio content if no cache exists. No live production App authentication was performed during implementation because the configured file is a production placeholder.
 
-Active, non-forked repositories owned by the configured account are eligible, including private repositories accessible to the authenticated GitHub App installation. Install the App on all desired repositories (or select them explicitly in GitHub). Without working App credentials, only public repositories can be fetched. Private project metadata (names, descriptions, topics, dates, and language statistics) appears on the public portfolio. Private source and README links are omitted; private repositories do not populate the open-source chapter.
+Active, non-forked repositories owned by the configured account are eligible, including explicitly selected private repositories accessible to the authenticated GitHub App installation. Private names must be listed in `GITHUB_REPOSITORIES`; an empty selection includes public repositories only. Install the App on all desired repositories (or select them explicitly in GitHub). Without working App credentials, only public repositories can be fetched. Private project metadata (names, descriptions, topics, dates, and language statistics) appears on the public portfolio. Private source and README links are omitted; private repositories do not populate the open-source chapter.
 
 README excerpts come from GitHub's public README endpoint without App authentication, so the App does not need Contents permission. Markdown is reduced to plain text and escaped by Astro rather than rendered as repository-supplied HTML. An unavailable README or language endpoint does not prevent a project from appearing.
 
@@ -35,7 +35,7 @@ Project names, descriptions, topics, source/homepage links, stars, forks, last-p
 
 ## Refresh and fallback
 
-Only normalized project metadata is stored in ignored `.cache/github-projects.json`. The cache key includes the installation and authentication configuration; caches created under the old public-only policy are invalidated. The cache is shared by English and French and remains fresh for one hour. In-flight calls are shared briefly to avoid duplicate work. Rate limits or outages can use an older matching cache; a cold failure falls back to the existing portfolio projects in `SiteConfig.ts`.
+Only normalized project metadata is stored in ignored `.cache/github-projects.json`. The cache key includes the installation, selection, privacy policy version, and authentication configuration; caches created under the old public-only policy are invalidated. The cache is shared by English and French and remains fresh for one hour. In-flight calls are shared briefly to avoid duplicate work. Rate limits or outages can use an older matching cache; a cold failure falls back to the existing portfolio projects in `SiteConfig.ts`.
 
 New GitHub changes require a new build and deployment. To refresh before the cache expires in PowerShell:
 

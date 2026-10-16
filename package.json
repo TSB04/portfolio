@@ -12,7 +12,8 @@
     "astro": "astro",
     "test:github": "node --experimental-strip-types --test tests/github.test.mjs",
     "check:seo": "node scripts/check-seo.mjs",
-    "generate:social": "node scripts/generate-social-image.mjs"
+    "generate:social": "node scripts/generate-social-image.mjs",
+    "check:public": "python scripts/check-public-repo.py"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -25,5 +26,11 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "typescript": "^6.0.3"
+  },
+  "license": "MIT",
+  "author": "Thierno Sadou BARRY",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TSB04/portfolio2.git"
   }
 }

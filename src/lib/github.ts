@@ -128,7 +128,7 @@ async function enrich(repo: Repository, token?: string): Promise<GitHubProject> 
 async function load(owner: string): Promise<GitHubProject[]> {
   const include = env("GITHUB_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
   const limit = Math.min(24, Math.max(1, Number.parseInt(env("GITHUB_PROJECT_LIMIT"), 10) || 12));
-  const key = JSON.stringify({ version: 3, owner: owner.toLowerCase(), include, limit, installation: env("GITHUB_INSTALLATION_ID"), authenticated: !!((env("GITHUB_CLIENT_ID") || env("GITHUB_APP_ID")) && (env("GITHUB_PRIVATE_KEY_PATH") || env("GITHUB_PRIVATE_KEY"))) });
+  const key = JSON.stringify({ version: 4, owner: owner.toLowerCase(), include, limit, installation: env("GITHUB_INSTALLATION_ID"), authenticated: !!((env("GITHUB_CLIENT_ID") || env("GITHUB_APP_ID")) && (env("GITHUB_PRIVATE_KEY_PATH") || env("GITHUB_PRIVATE_KEY"))) });
   let cached: { key: string; fetchedAt: number; projects: GitHubProject[] } | undefined;
   try {
     const data = JSON.parse(await readFile(cacheFile, "utf8"));
@@ -142,8 +142,8 @@ async function load(owner: string): Promise<GitHubProject[]> {
       const data = token
         ? await request<{ repositories: Repository[] }>(`/installation/repositories?per_page=100&page=${page}`, token).then((data) => data.repositories)
         : await request<Repository[]>(`/users/${encodeURIComponent(owner)}/repos?type=owner&sort=pushed&per_page=100&page=${page}`);
-      // Private metadata is eligible only with authenticated installation access.
-      repos.push(...data.filter((repo) => (token || (!repo.private && (!repo.visibility || repo.visibility === "public"))) && !repo.fork && !repo.archived && !repo.disabled && repo.owner.login.toLowerCase() === owner.toLowerCase() && repo.name.toLowerCase() !== owner.toLowerCase() && /^[\w.-]+\/[\w.-]+$/.test(repo.full_name)));
+      // Private metadata requires both App access and explicit repository selection.
+      repos.push(...data.filter((repo) => ((!repo.private && (!repo.visibility || repo.visibility === "public")) || (token && repo.private && include.includes(repo.full_name.toLowerCase()))) && !repo.fork && !repo.archived && !repo.disabled && repo.owner.login.toLowerCase() === owner.toLowerCase() && repo.name.toLowerCase() !== owner.toLowerCase() && /^[\w.-]+\/[\w.-]+$/.test(repo.full_name)));
       if (data.length < 100) break;
     }
     const selected = repos.filter((repo) => !include.length || include.includes(repo.full_name.toLowerCase())).sort((a, b) =>
