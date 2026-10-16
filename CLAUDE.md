@@ -6,10 +6,10 @@ Guidance for AI coding agents working in this repository. Assume no prior knowle
 
 Personal portfolio website for **Thierno Sadou BARRY** (TSB — Full Stack Engineer), deployed at <https://tsb-dev.fr>.
 
-- **Framework:** [Astro](https://docs.astro.build) v7 (`astro ^7.1.3`), static output (`output: "static"` in `astro.config.mjs`).
+- **Framework:** [Astro](https://docs.astro.build) v7 (`astro ^7.4.0`), static output (`output: "static"` in `astro.config.mjs`).
 - **Styling:** Tailwind CSS v4 via the official Vite plugin (`@tailwindcss/vite`). All theme configuration lives in CSS (`src/styles/global.css`), there is no `tailwind.config.*` file.
 - **Language:** TypeScript (`.ts` modules + frontmatter in `.astro` files), strict mode via `astro/tsconfigs/strict`.
-- **Runtime requirement:** Node.js `>=22.12.0` (see `engines` in `package.json`).
+- **Runtime requirement:** Node.js `>=22.22.0` (see `engines` in `package.json`).
 - **No UI framework** (no React/Vue/Svelte). Interactivity is done with plain `<script>` blocks inside `.astro` components.
 - **Images:** optimized with `sharp` through `astro:assets`; fonts are self-hosted via Astro's experimental `fonts` API (Fontsource provider: Gabarito + Be Vietnam Pro).
 
@@ -106,7 +106,7 @@ Path aliases are defined in `tsconfig.json` — use them instead of relative pat
 - The site uses `ClientRouter` (view transitions) with `transition:persist` on Header and Footer. Scripts that attach DOM listeners must handle re-execution after navigation: use `is:inline` / `data-astro-rerun` and re-query elements instead of caching them (see `ThemeToggle.astro` for the established pattern).
 - PageFlip navigation and adaptive pagination live in `src/scripts/book.ts` and `paginate.ts`; covers remain outside the book.
 - Images in content are imported in `SiteConfig.ts` as `ImageMetadata` and rendered through `OptimizedImage.astro` / `astro:assets` — do not hotlink or use plain `<img>` for content images.
-- `astro.config.mjs` allows remote images from `images.unsplash.com` and any `https` source via `remotePatterns`.
+- `astro.config.mjs` uses local image assets; remote image hosts are not implicitly allowed.
 
 ## Security and Environment Notes
 

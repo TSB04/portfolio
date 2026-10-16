@@ -9,7 +9,7 @@ spec.loader.exec_module(policy)
 
 class PublicRepositoryTests(unittest.TestCase):
     def test_private_files_are_blocked_in_nested_directories(self):
-        for name in (".env", "deploy/.env.staging", "keys/app.pem", "tls/server.pfx", ".ssh/id_ed25519", "deploy/operator.json", "docs/private/runbook.md", "deploy/settings.local.json", "credentials-build.json"):
+        for name in (".env", ".keys/operator-token.json", "deploy/.env.staging", "keys/app.pem", "tls/server.pfx", ".ssh/id_ed25519", "deploy/operator.json", "docs/private/runbook.md", "deploy/settings.local.json", "credentials-build.json"):
             with self.subTest(name=name):
                 self.assertTrue(policy.private_path(name))
 

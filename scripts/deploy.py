@@ -56,7 +56,7 @@ def main():
             if source.is_symlink(): raise ValueError("Do not deploy symlinked output")
             if not source.is_file(): continue
             relative = source.relative_to(dist)
-            if any(part.startswith(".env") or part in (".git", ".ssh", ".aws", ".azure", ".kube", ".private") for part in relative.parts) or source.suffix.lower() in (".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".db", ".sqlite", ".sqlite3") or source.name.lower() in ("operator.json", ".npmrc", ".netrc", "credentials.json"):
+            if any(part.startswith(".env") or part in (".git", ".keys", ".ssh", ".aws", ".azure", ".kube", ".private") for part in relative.parts) or source.suffix.lower() in (".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".db", ".sqlite", ".sqlite3") or source.name.lower() in ("operator.json", ".npmrc", ".netrc", "credentials.json"):
                 raise ValueError("Private file in output")
             if b"PRIVATE KEY-----" in source.read_bytes(): raise ValueError("Signing material in output")
             archive.add(source, arcname="site/" + relative.as_posix(), recursive=False)

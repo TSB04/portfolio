@@ -50,16 +50,11 @@ export default defineConfig({
     }),
   })],
 
-  // Optional: Image optimization
+  // Content images are local assets; remote hosts are not implicitly trusted.
   image: {
      service: {
       entrypoint: "astro/assets/services/sharp"
     },
-     domains: [
-      "images.unsplash.com",
-      "cdn.example.com"
-    ],
-    remotePatterns: [{ protocol: "https" }],
   },
 
   // Optional: Build output
