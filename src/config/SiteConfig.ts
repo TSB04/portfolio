@@ -6,6 +6,7 @@ import invoice from "@images/projects/invora/invora.png";
 import sunuflix from "@images/projects/sunustream/colored-logo.png";
 import homelab from "@images/homelab.png";
 import profile from "@images/profil/tsb-blue&white.png";
+import profileBlack from "@images/profil/tsb-black.png";
 import profileLarge from "@images/profil/tsb-green.png";
 // Reuse locally available optimized imagery until dedicated assets are added.
 const soin = sunuflix;
@@ -64,7 +65,8 @@ const baseConfig: SiteConfig = {
 
 const baseContent: SiteContent = {
   hero: {
-    image: profile,
+    image: profileBlack,
+    imageDark: profile,
     name: "Thierno Sadou BARRY",
     email: "thierno.sadou.barry98@gmail.com",
     specialty: "Full Stack Engineer • Java • Spring Boot • React • AI",
@@ -461,7 +463,8 @@ I believe in a holistic approach to software engineering: understanding low-leve
 Beyond code, I'm committed to digital sovereignty, open source, and ethical technology. My long-term vision includes contributing to Africa's tech autonomy through open-source tools, lightweight architectures, and knowledge transmission.
 
 Outside of client work, I maintain a homelab for continuous experimentation with distributed systems, DevOps tooling, and emerging backend technologies. I also enjoy repairing electronics, exploring IoT, and mentoring junior developers.`,
-    image: profile,
+    image: profileLarge,
+    imageDark: profile,
   },
 
   skills: {
@@ -721,6 +724,7 @@ Au-delà du code, je suis engagé envers la souveraineté numérique, l'open sou
 
 En dehors du travail client, je maintiens un homelab pour l'expérimentation continue avec les systèmes distribués, les outils DevOps et les technologies backend émergentes. J'apprécie aussi la réparation d'électronique, l'exploration de l'IoT et le mentorat de développeurs juniors.`,
     image: profileLarge,
+    imageDark: profile,
   },
 
   philosophy: {

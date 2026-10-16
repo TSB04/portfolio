@@ -39,6 +39,7 @@ __pycache__/
 *.pfx
 *.jks
 *.keystore
+.keys/
 *.der
 *.crt
 *.cer

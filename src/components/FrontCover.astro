@@ -1,8 +1,8 @@
 ﻿---
 import type { HeroContent, TranslationKeys } from "@types";
-import OptimizedImage from "./OptimizedImage.astro";
+import ThemePortrait from "./ThemePortrait.astro";
 type Props = HeroContent & { t: TranslationKeys };
-const { name, specialty, summary, image, availability, location, ctaLabel, t } = Astro.props;
+const { name, specialty, summary, image, imageDark, availability, location, ctaLabel, t } = Astro.props;
 const items = typeof summary === "string" ? [{ title: t.nav.about, text: summary }] : summary;
 ---
 <section id="hero" class="portfolio-stage front-cover" aria-labelledby="hero-title" tabindex="-1">
@@ -35,7 +35,7 @@ const items = typeof summary === "string" ? [{ title: t.nav.about, text: summary
   </div>
   <div class="hero-art" aria-hidden="true">
     <div class="hero-bubble">
-      {image && <OptimizedImage src={image} alt={name} width={800} height={960} priority />}
+      {image && <ThemePortrait {image} {imageDark} alt={name} width={800} height={960} priority />}
       {!image && <span class="hero-monogram">TSB<span>ENGINEERING</span></span>}
     </div>
     <span class="hero-orbit hero-orbit-one"></span>

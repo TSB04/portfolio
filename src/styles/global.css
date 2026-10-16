@@ -969,3 +969,8 @@ body[data-book-orientation="landscape"] #book::after { content: ""; position: ab
 .project-image-canvas.is-zoomed { cursor: zoom-out; }
 .project-image-canvas.is-zoomed img { width: auto; max-width: none; }
 @media print { .project-image-dialog { display: none; } }
+
+/* Follow the stored theme class, including before JavaScript hydration. */
+.theme-portrait-dark { display: none !important; }
+.dark .theme-portrait-light { display: none !important; }
+.dark .theme-portrait-dark { display: block !important; }
