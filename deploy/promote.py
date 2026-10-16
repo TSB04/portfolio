@@ -15,7 +15,8 @@ import time
 import urllib.request
 
 ROOT = Path.home() / "tsb-portfolio"
-INGRESS_EXTRA = Path.home() / "sunustream-cd/control/ingress-extra.conf"
+INGRESS_EXTRA = None
+INGRESS_CONTAINER = ""
 
 
 def run(args, **kwargs):
@@ -34,9 +35,9 @@ def link(target):
 
 
 def ingress(fragment, backup):
-    items = json.loads(subprocess.check_output(["docker", "inspect", "sunustream-nginx"], text=True))
+    items = json.loads(subprocess.check_output(["docker", "inspect", INGRESS_CONTAINER], text=True))
     template = Path(next(m["Source"] for m in items[0]["Mounts"] if m["Destination"] == "/etc/nginx/config-templates/default.conf.template"))
-    current = subprocess.check_output(["docker", "exec", "sunustream-nginx", "cat", "/etc/nginx/conf.d/default.conf"], text=True)
+    current = subprocess.check_output(["docker", "exec", INGRESS_CONTAINER, "cat", "/etc/nginx/conf.d/default.conf"], text=True)
     paths = [(INGRESS_EXTRA, INGRESS_EXTRA.read_text(), "extra.conf"), (template, template.read_text(), "template.conf")]
     originals = {name: content for _, content, name in paths} | {"live.conf": current}
     for name, content in originals.items():
@@ -45,18 +46,18 @@ def ingress(fragment, backup):
     def merge(content):
         return pattern.sub("\n", content).rstrip() + "\n\n" + fragment.strip() + "\n"
     def write_live(content):
-        run(["docker", "exec", "-i", "sunustream-nginx", "sh", "-c", "cat > /etc/nginx/conf.d/default.conf"], input=content, text=True)
+        run(["docker", "exec", "-i", INGRESS_CONTAINER, "sh", "-c", "cat > /etc/nginx/conf.d/default.conf"], input=content, text=True)
     try:
         # Write in place: the active template is a file bind mount.
         for path, content, _ in paths: path.write_text(merge(content))
         write_live(merge(current))
-        run(["docker", "exec", "sunustream-nginx", "nginx", "-t"])
-        run(["docker", "exec", "sunustream-nginx", "nginx", "-s", "reload"])
+        run(["docker", "exec", INGRESS_CONTAINER, "nginx", "-t"])
+        run(["docker", "exec", INGRESS_CONTAINER, "nginx", "-s", "reload"])
     except Exception:
         for path, content, _ in paths: path.write_text(content)
         write_live(current)
-        run(["docker", "exec", "sunustream-nginx", "nginx", "-t"])
-        run(["docker", "exec", "sunustream-nginx", "nginx", "-s", "reload"])
+        run(["docker", "exec", INGRESS_CONTAINER, "nginx", "-t"])
+        run(["docker", "exec", INGRESS_CONTAINER, "nginx", "-s", "reload"])
         raise
     return template, originals
 
@@ -77,11 +78,21 @@ def verify():
 
 
 def main():
+    global INGRESS_EXTRA, INGRESS_CONTAINER
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["deploy", "tls"])
     parser.add_argument("--release")
     parser.add_argument("--sha256")
     args = parser.parse_args()
+    operator = json.loads((ROOT / "operator.json").read_text())
+    for field in ("ingress_container", "docker_network"):
+        if not isinstance(operator.get(field), str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", operator[field]):
+            raise ValueError("Invalid private operator configuration")
+    INGRESS_EXTRA = Path(operator["ingress_extra"]).expanduser()
+    if not INGRESS_EXTRA.is_absolute() or not INGRESS_EXTRA.is_file():
+        raise ValueError("Private ingress configuration file is unavailable")
+    INGRESS_CONTAINER = operator["ingress_container"]
+    os.environ["PORTFOLIO_DOCKER_NETWORK"] = operator["docker_network"]
     ROOT.mkdir(mode=0o755, exist_ok=True)
     # Serialize manual and automated promotions on the production host.
     import fcntl
@@ -120,7 +131,7 @@ def main():
                 raise ValueError("Unsafe archive entry")
             if path.parts[0] != "site" and member.name not in ("compose.yml", "nginx.conf", "ingress-http.conf", "ingress-https.conf"):
                 raise ValueError("Unexpected archive entry")
-            if any(part.startswith(".env") for part in path.parts) or path.suffix.lower() in (".pem", ".key"):
+            if any(part.startswith(".env") or part in (".git", ".ssh", ".aws", ".azure", ".kube", ".private") for part in path.parts) or path.suffix.lower() in (".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore", ".db", ".sqlite", ".sqlite3") or path.name.lower() in ("operator.json", ".npmrc", ".netrc", "credentials.json"):
                 raise ValueError("Private file in public release")
             target = release.joinpath(*path.parts)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -143,11 +154,11 @@ def main():
     try:
         link(release / "site")
         compose()
-        tls_ready = subprocess.run(["docker", "exec", "sunustream-nginx", "test", "-f", "/etc/letsencrypt/live/tsb-dev.fr/fullchain.pem"]).returncode == 0
+        tls_ready = subprocess.run(["docker", "exec", INGRESS_CONTAINER, "test", "-f", "/etc/letsencrypt/live/tsb-dev.fr/fullchain.pem"]).returncode == 0
         ingress_state = ingress((ROOT / ("ingress-https.conf" if tls_ready else "ingress-http.conf")).read_text(), backup)
         if tls_ready:
             for path in ("en/", "fr/", "robots.txt", "sitemap-index.xml", "sitemap-0.xml", "og-image.png", "version.json"):
-                run(["docker", "exec", "sunustream-nginx", "wget", "-q", "--spider", f"http://tsb-portfolio-origin/{path}"])
+                run(["docker", "exec", INGRESS_CONTAINER, "wget", "-q", "--spider", f"http://tsb-portfolio-origin/{path}"])
         else:
             verify()
         version = release / "site/version.json"
@@ -159,9 +170,9 @@ def main():
         if ingress_state:
             template, originals = ingress_state
             INGRESS_EXTRA.write_text(originals["extra.conf"]); template.write_text(originals["template.conf"])
-            run(["docker", "exec", "-i", "sunustream-nginx", "sh", "-c", "cat > /etc/nginx/conf.d/default.conf"], input=originals["live.conf"], text=True)
-            run(["docker", "exec", "sunustream-nginx", "nginx", "-t"])
-            run(["docker", "exec", "sunustream-nginx", "nginx", "-s", "reload"])
+            run(["docker", "exec", "-i", INGRESS_CONTAINER, "sh", "-c", "cat > /etc/nginx/conf.d/default.conf"], input=originals["live.conf"], text=True)
+            run(["docker", "exec", INGRESS_CONTAINER, "nginx", "-t"])
+            run(["docker", "exec", INGRESS_CONTAINER, "nginx", "-s", "reload"])
         if previous:
             for name, data in old_configs.items():
                 if data is not None: (ROOT / name).write_bytes(data)

@@ -60,6 +60,7 @@ test("App authentication signs an RS256 JWT and requests only read-only metadata
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.GITHUB_CLIENT_ID = "test-client-id";
   process.env.GITHUB_INSTALLATION_ID = "123";
+  process.env.GITHUB_REPOSITORIES = "public,private";
   process.env.GITHUB_PRIVATE_KEY = privateKey.export({ type: "pkcs8", format: "pem" });
   let authenticatedList = false;
   globalThis.fetch = async (url, options) => {
@@ -127,4 +128,23 @@ test("fresh cache avoids API calls; stale public cache survives rate limits; col
   globalThis.fetch = publicAPI([repo("old-popular", { stargazers_count: 1000 }), repo("new", { pushed_at: "2026-09-01T00:00:00Z", stargazers_count: 0 }), repo("no-push", { pushed_at: null, updated_at: "2026-10-01T00:00:00Z" })]);
   const projects = await (await fresh()).getGitHubProjects("en", fallback);
   assert.deepEqual(projects.map((project) => project.name), ["no-push", "new"]);
+}));
+
+test("App access alone does not publish private repository metadata", async () => fixture(async () => {
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  process.env.GITHUB_APP_ID = "fixture-app";
+  process.env.GITHUB_INSTALLATION_ID = "123";
+  process.env.GITHUB_PRIVATE_KEY = privateKey.export({ type: "pkcs8", format: "pem" });
+  const calls = [];
+  const publicFetch = publicAPI([], calls);
+  globalThis.fetch = async (url, options) => {
+    if (url.endsWith("/access_tokens")) return json({ token: "fixture-installation-token" });
+    if (url.includes("/installation/repositories")) return json({ repositories: [repo("visible"), repo("unselected-private", { private: true, visibility: "private" })] });
+    return publicFetch(url, options);
+  };
+  const projects = await (await fresh()).getGitHubProjects("en", fallback);
+  assert.deepEqual(projects.map((project) => project.name), ["visible"]);
+  assert.ok(!calls.some(({ url }) => url.includes("unselected-private")));
+  const cache = await readFile(".cache/github-projects.json", "utf8");
+  assert.ok(!cache.includes("unselected-private"));
 }));

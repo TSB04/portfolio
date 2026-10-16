@@ -37,26 +37,27 @@ Manage the background server with `astro dev stop`, `astro dev status`, and `ast
 
 ### Testing
 
-There is **no test suite, no linter, and no formatter configured** in this project (no test script in `package.json`, no ESLint/Prettier config). Verification is done by:
+Verification commands:
 
-1. `npm run astro check` — type-checks `.astro` and TypeScript files (requires `@astrojs/check` + `typescript`; install on demand if missing).
-2. `npm run build` — must succeed without errors.
-3. Manually inspecting pages in dev/preview mode (both locales `/en` and `/fr`).
+1. `npm run check:public` checks tracked paths and public content policy.
+2. `npm run astro check` validates Astro and TypeScript files.
+3. `npm run test:github` runs mocked GitHub integration tests.
+4. `python -m unittest discover -s tests -p 'test_*.py'` tests deployment and privacy safeguards.
+5. `npm run build` and `npm run check:seo` validate the generated site.
 
-There is also no CI/CD pipeline in the repository; deployment of `dist/` is handled outside the repo (hosting for `tsb-dev.fr`).
+No linter or formatter is configured. CI also scans Git history and build output with Gitleaks. Merges to main deploy through the GitHub Actions workflow; see `docs/CICD.md`. Operator destinations and infrastructure bindings belong in private configuration, never public docs or script defaults. The project is MIT-licensed: retain LICENSE, NOTICE, and the owner's attribution.
 
 ## Code Organization
 
 ```
 src/
 ├── pages/
-│   ├── index.astro            # Root route: redirects to /fr or /en based on Astro.preferredLocale
+│   ├── index.astro            # Root route: permanent redirect to /en/
 │   └── [locale]/index.astro   # The real homepage (getStaticPaths: en, fr)
-│       [locale]/card.astro    # Standalone legacy "business card" page (uses styles/card.css)
-├── layouts/Layout.astro       # Single layout: <head> (SEO, OG, JSON-LD), Header, snap-scroll container, Footer
+│       [locale]/card.astro    # Legacy card URL: permanent locale homepage redirect
+├── layouts/Layout.astro       # Single layout: <head> (SEO, OG, JSON-LD), Header, presentation, PageFlip reader, contact
 ├── components/                # Active components: Header, Footer, Hero, Experience, Projects, About,
 │                              #   Section, ThemeToggle, LanguageToggle, OptimizedImage
-├── componentsAssup/           # LEGACY/backup copies of earlier components — do not edit or import from here
 ├── config/SiteConfig.ts       # All portfolio content (hero, experience, projects, about, skills)
 │                              #   in both English (base) and French (frContent)
 ├── i18n/                      # UI string translations: en.ts, fr.ts, helpers in index.ts
@@ -69,7 +70,7 @@ src/
 └── assets/images/             # Local images imported as ImageMetadata (logo, profile, project shots)
 ```
 
-`public/` holds static files served as-is: favicons, `site.webmanifest`, `robots.txt`.
+`public/` holds static favicons, the web manifest, and the social image. `src/pages/robots.txt.ts` and `license.txt.ts` generate public text endpoints.
 
 ### Import aliases
 
@@ -85,7 +86,7 @@ Path aliases are defined in `tsconfig.json` — use them instead of relative pat
 
 ## Internationalization (i18n)
 
-- Locales: `en` (default) and `fr`, configured in `astro.config.mjs` with `prefixDefaultLocale: false` at the Astro level — but in practice both locales are served under `/[locale]/` via `getStaticPaths`, and `/` performs a redirect based on `Astro.preferredLocale`.
+- Locales: `en` (default) and `fr`, configured in `astro.config.mjs` with `prefixDefaultLocale: true` at the Astro level — but in practice both locales are served under `/[locale]/` via `getStaticPaths`, and `/` redirects permanently to `/en/`.
 - **Two-layer translation model:**
   - `src/config/SiteConfig.ts` — long-form portfolio *content* per locale (`getSiteConfig(locale)`, `getSiteContent(locale)`). The French content spreads the English base and overrides translated fields.
   - `src/i18n/en.ts` / `fr.ts` — short *UI strings* typed by `TranslationKeys`, accessed via `getTranslation(locale)`.
@@ -103,8 +104,8 @@ Path aliases are defined in `tsconfig.json` — use them instead of relative pat
 ## Astro-Specific Conventions
 
 - The site uses `ClientRouter` (view transitions) with `transition:persist` on Header and Footer. Scripts that attach DOM listeners must handle re-execution after navigation: use `is:inline` / `data-astro-rerun` and re-query elements instead of caching them (see `ThemeToggle.astro` for the established pattern).
-- Page layout uses a snap-scroll container (`.snap-y`) inside a fixed-height body; `Layout.astro` adds keyboard navigation (ArrowUp/Down, PageUp/Down) that scrolls this container.
-- Images in content are imported in `SiteConfig.ts` as `ImageMetadata` and rendered through `OptimizedImage.astro` / `astro:assets` — do not hotlink or use plain `<img>` for content images (the legacy `card.astro` page is the only exception).
+- PageFlip navigation and adaptive pagination live in `src/scripts/book.ts` and `paginate.ts`; covers remain outside the book.
+- Images in content are imported in `SiteConfig.ts` as `ImageMetadata` and rendered through `OptimizedImage.astro` / `astro:assets` — do not hotlink or use plain `<img>` for content images.
 - `astro.config.mjs` allows remote images from `images.unsplash.com` and any `https` source via `remotePatterns`.
 
 ## Security and Environment Notes

@@ -29,4 +29,4 @@ services:
 networks:
   ingress:
     external: true
-    name: sunustream_sunustream
+    name: ${PORTFOLIO_DOCKER_NETWORK:?Set the private operator network configuration}
