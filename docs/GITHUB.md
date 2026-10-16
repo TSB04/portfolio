@@ -15,7 +15,9 @@ When the key is available, the integration signs a short-lived RS256 JWT and req
 
 The production key path may be a placeholder locally. A missing key file, or no App configuration, selects the public API. Invalid keys or failed authentication use previously cached project metadata, or the existing local portfolio content if no cache exists. No live production App authentication was performed during implementation because the configured file is a production placeholder.
 
-Active, non-forked repositories owned by the configured account are eligible, including explicitly selected private repositories accessible to the authenticated GitHub App installation. Private names must be listed in `GITHUB_REPOSITORIES`; an empty selection includes public repositories only. Install the App on all desired repositories (or select them explicitly in GitHub). Without working App credentials, only public repositories can be fetched. Private project metadata (names, descriptions, topics, dates, and language statistics) appears on the public portfolio. Private source and README links are omitted; private repositories do not populate the open-source chapter.
+All repositories owned by the configured account are eligible unless archived or disabled, including forks and the profile repository. `GITHUB_REPOSITORIES=*` explicitly permits public display of metadata for all current and future accessible public/private owned repositories. Archive a repository on GitHub to remove it on the next successful build. An empty selection remains public-only; named selections support a curated portfolio. The App must have access to all desired repositories.
+
+This policy publishes names, descriptions, topics, branch names, dates, statistics, and verified submodule names/paths/pinned revisions. Private source code, README text, credentials and private source links remain excluded. Private repositories never populate the open-source chapter.
 
 README excerpts are fetched only for public repositories. Markdown is reduced to plain text and escaped by Astro rather than rendered as repository-supplied HTML. An unavailable README, release, language, or component endpoint does not prevent its parent project from appearing. Private README text and release content are never fetched for display.
 
@@ -27,21 +29,21 @@ Optional values in `.env` or the build environment:
 
 ```dotenv
 GITHUB_OWNER=tsb04
-GITHUB_PROJECT_LIMIT=12
-GITHUB_REPOSITORIES=portfolio2,ms_estiam,Teranga-Digital
+GITHUB_PROJECT_LIMIT=0
+GITHUB_REPOSITORIES=*
 ```
 
-`GITHUB_REPOSITORIES` is optional. When provided, it filters repository names (or full `owner/name` names). All selections are sorted by latest push first, falling back to the update date when no push date is available, with a default limit of 12 (maximum 24).
+`GITHUB_REPOSITORIES` is optional. When provided, it filters repository names (or full `owner/name` names). All selections are sorted by latest push first, falling back to the update date when no push date is available, with no cap by default. `GITHUB_PROJECT_LIMIT=0` means unlimited; a positive integer enables an optional cap. Listing follows pagination until exhausted.
 
 Project pages include descriptions, topics, creation and last-push dates, default branch, repository size, open issue/pull request count, stars, forks, license, language percentages, and the latest public release when available. Repository size is GitHub's reported size, not a download-size estimate. Private repositories do not populate the open-source chapter.
 
-Local brand images are used for SAAY and SunuStream. Existing screenshots are reused only for matching repository URLs; other projects receive a CSS illustration.
+Local images match SAAY, Studio/API/AI/homelab, Invora and SunuStream by repository name. Supplied portraits appear on the cover and About pages. Existing screenshots are reused only for matching repository URLs; other projects receive a CSS illustration.
 
 ## Submodules
 
 Each parent can display up to twelve direct submodules as component cards. Discovery reads `.gitmodules`, verifies paths against actual Git tree entries with mode `160000`, and displays the pinned revision. Relative URLs, GitHub HTTPS URLs, and GitHub SSH URLs are normalized without cloning code. Non-GitHub hosts, credential-bearing URLs, invalid paths, and ordinary directories are ignored. Requests are processed in small batches and never run in visitors' browsers.
 
-Public components can appear automatically. Private component metadata requires explicit selection in `GITHUB_REPOSITORIES` or `GITHUB_SUBMODULE_REPOSITORIES`. The latter adds components without creating standalone project cards. Missing access to a child repository skips that component while preserving the parent. Only the first level of submodules is inspected; nested submodules are not recursively expanded.
+Archived and disabled components are excluded. Public components appear automatically. Private components require explicit selection in `GITHUB_REPOSITORIES` or `GITHUB_SUBMODULE_REPOSITORIES`, or the wildcard policy for components owned by the same account as their parent. The latter adds components without creating standalone project cards. Missing access to a child repository skips that component while preserving the parent. Only the first level of submodules is inspected; nested submodules are not recursively expanded.
 
 ```dotenv
 GITHUB_SUBMODULE_REPOSITORIES=approved-component,owner/another-approved-component
@@ -51,7 +53,7 @@ Selecting a private component permits its name, description, language, path and 
 
 ## Refresh and fallback
 
-Only normalized project metadata is stored in ignored `.cache/github-projects.json`. The cache key includes the installation, selection, privacy policy version, and authentication configuration; caches created under the old public-only policy are invalidated. The cache is shared by English and French and remains fresh for one hour. In-flight calls are shared briefly to avoid duplicate work. Rate limits or outages can use an older matching cache; a cold failure falls back to the existing portfolio projects in `SiteConfig.ts`.
+Only normalized project metadata is stored in ignored `.cache/github-projects.json`. The cache key includes the installation, selection, privacy policy version, and authentication configuration; caches created under the old public-only policy are invalidated. The cache is shared by English and French and remains fresh for one hour during development. Production builds fetch fresh metadata so archive changes take effect. In-flight calls are shared briefly to avoid duplicate work. Rate limits or outages can use an older matching cache; a cold failure falls back to the existing portfolio projects in `SiteConfig.ts`.
 
 New GitHub changes require a new build and deployment. To refresh before the cache expires in PowerShell:
 

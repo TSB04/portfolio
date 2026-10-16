@@ -164,7 +164,7 @@ async function submodules(repo: Repository, token: string | undefined, approved:
     for (let i = 0; i < candidates.length; i += 4) {
       const batch = await Promise.allSettled(candidates.slice(i, i + 4).map(async (entry) => {
         const child = await request<Repository>(`/repos/${entry.target.split("/").map(encodeURIComponent).join("/")}`, token);
-        if (child.disabled || child.full_name.toLowerCase() !== entry.target.toLowerCase() || (child.private && !approved.has(child.full_name.toLowerCase()))) return;
+        if (child.disabled || child.archived || child.full_name.toLowerCase() !== entry.target.toLowerCase() || (child.private && !approved.has(child.full_name.toLowerCase()) && !(approved.has("*") && child.owner.login.toLowerCase() === repo.owner.login.toLowerCase()))) return;
         return { name: child.name, fullName: child.full_name, path: entry.path, summary: child.description || "", language: child.language,
           private: child.private, url: child.private ? "" : `https://github.com/${child.full_name}`, commit: gitlinks.get(entry.path)! } satisfies ProjectSubmodule;
       }));
@@ -200,32 +200,34 @@ async function enrich(repo: Repository, token: string | undefined, approved: Set
   };
 }
 async function load(owner: string): Promise<GitHubProject[]> {
-  const include = env("GITHUB_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
-  const limit = Math.min(24, Math.max(1, Number.parseInt(env("GITHUB_PROJECT_LIMIT"), 10) || 12));
-  const moduleInclude = env("GITHUB_SUBMODULE_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
+  const include = env("GITHUB_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name === "*" ? "*" : name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
+  const configuredLimit = Number.parseInt(env("GITHUB_PROJECT_LIMIT"), 10);
+  const limit = configuredLimit > 0 ? configuredLimit : undefined;
+  const includeAll = include.includes("*");
+  const moduleInclude = env("GITHUB_SUBMODULE_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name === "*" ? "*" : name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
   const approved = new Set([...include, ...moduleInclude]);
-  const key = JSON.stringify({ version: 6, userAuth: !!env("GITHUB_USER_TOKEN"), owner: owner.toLowerCase(), include, moduleInclude, limit, installation: env("GITHUB_INSTALLATION_ID"), authenticated: !!env("GITHUB_USER_TOKEN") || !!((env("GITHUB_CLIENT_ID") || env("GITHUB_APP_ID")) && (env("GITHUB_PRIVATE_KEY_PATH") || env("GITHUB_PRIVATE_KEY"))) });
+  const key = JSON.stringify({ version: 7, userAuth: !!env("GITHUB_USER_TOKEN"), owner: owner.toLowerCase(), include, moduleInclude, limit, installation: env("GITHUB_INSTALLATION_ID"), authenticated: !!env("GITHUB_USER_TOKEN") || !!((env("GITHUB_CLIENT_ID") || env("GITHUB_APP_ID")) && (env("GITHUB_PRIVATE_KEY_PATH") || env("GITHUB_PRIVATE_KEY"))) });
   let cached: { key: string; fetchedAt: number; projects: GitHubProject[] } | undefined;
   try {
     const data = JSON.parse(await readFile(cacheFile, "utf8"));
     if (data.key === key && Array.isArray(data.projects) && (!JSON.parse(key).authenticated || data.authenticated === true)) cached = data;
   } catch { /* A cache is optional and never contains credentials. */ }
-  if (cached && Date.now() - cached.fetchedAt < cacheTTL) return cached.projects;
+  if (env("NODE_ENV") !== "production" && cached && Date.now() - cached.fetchedAt < cacheTTL) return cached.projects;
   try {
     const userToken = env("GITHUB_USER_TOKEN");
     const token = userToken || await installationToken();
     const repos: Repository[] = [];
-    for (let page = 1; page <= 10; page++) {
+    for (let page = 1; ; page++) {
       const data = userToken
         ? await request<Repository[]>(`/user/repos?affiliation=owner&visibility=all&sort=pushed&per_page=100&page=${page}`, userToken)
         : token
         ? await request<{ repositories: Repository[] }>(`/installation/repositories?per_page=100&page=${page}`, token).then((data) => data.repositories)
         : await request<Repository[]>(`/users/${encodeURIComponent(owner)}/repos?type=owner&sort=pushed&per_page=100&page=${page}`);
-      // Private metadata requires both App access and explicit repository selection.
-      repos.push(...data.filter((repo) => ((!repo.private && (!repo.visibility || repo.visibility === "public")) || (token && repo.private && include.includes(repo.full_name.toLowerCase()))) && !repo.fork && !repo.archived && !repo.disabled && repo.owner.login.toLowerCase() === owner.toLowerCase() && repo.name.toLowerCase() !== owner.toLowerCase() && /^[\w.-]+\/[\w.-]+$/.test(repo.full_name)));
+      // Private metadata requires authentication and an explicit selection or wildcard publication policy.
+      repos.push(...data.filter((repo) => ((!repo.private && (!repo.visibility || repo.visibility === "public")) || (token && repo.private && (includeAll || include.includes(repo.full_name.toLowerCase())))) && !repo.archived && !repo.disabled && repo.owner.login.toLowerCase() === owner.toLowerCase() && /^[\w.-]+\/[\w.-]+$/.test(repo.full_name)));
       if (data.length < 100) break;
     }
-    const selected = repos.filter((repo) => !include.length || include.includes(repo.full_name.toLowerCase())).sort((a, b) =>
+    const selected = repos.filter((repo) => includeAll || !include.length || include.includes(repo.full_name.toLowerCase())).sort((a, b) =>
       (b.pushed_at || b.updated_at).localeCompare(a.pushed_at || a.updated_at) || a.full_name.localeCompare(b.full_name)
     ).slice(0, limit);
     const projects: GitHubProject[] = [];

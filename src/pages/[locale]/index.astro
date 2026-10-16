@@ -7,8 +7,15 @@ import Skills from "@components/Skills.astro";
 import BookAbout from "@components/BookAbout.astro";
 import BookExtras from "@components/BookExtras.astro";
 import BackCover from "@components/BackCover.astro";
-import saayBrand from "@images/projects/saay/logo/saay.png";
-import sunustreamBrand from "@images/projects/sunustream/Logos/colored-logo.png";
+import portfolioLogo from "@images/logo.png";
+import saayBrand from "@images/projects/saay/saay.png";
+import sunustreamBrand from "@images/projects/sunustream/colored-logo.png";
+import saayStudio from "@images/projects/saay/saay-studio.png";
+import saayApi from "@images/projects/saay/saay-api.png";
+import saayAi from "@images/projects/saay/saay-ai.png";
+import invora from "@images/projects/invora/invora.png";
+import homelab from "@images/homelab.png";
+import type { ImageMetadata } from "astro";
 import { getSiteConfig, getSiteContent } from "@config";
 import { getGitHubProjects } from "../../lib/github";
 import { getTranslation, isValidLocale, defaultLocale, type Locale } from "@i18n";
@@ -25,10 +32,26 @@ const locale: Locale = isValidLocale(rawLocale!) ? rawLocale : defaultLocale;
 
 const config = getSiteConfig(locale);
 const baseContent = getSiteContent(locale);
+const projectImages: Record<string, { image: ImageMetadata; imageFit: "cover" | "contain" }> = {
+  portfolio: { image: portfolioLogo, imageFit: "contain" },
+  portfolio2: { image: portfolioLogo, imageFit: "contain" },
+  tsb04: { image: portfolioLogo, imageFit: "contain" },
+  saay: { image: saayBrand, imageFit: "contain" },
+  saayagent: { image: saayStudio, imageFit: "contain" },
+  saaystudio: { image: saayStudio, imageFit: "contain" },
+  saayapi: { image: saayApi, imageFit: "contain" },
+  saayai: { image: saayAi, imageFit: "contain" },
+  saayhomelab: { image: homelab, imageFit: "contain" },
+  homelab: { image: homelab, imageFit: "contain" },
+  personalhomelab: { image: homelab, imageFit: "contain" },
+  invora: { image: invora, imageFit: "contain" },
+  sunustream: { image: sunustreamBrand, imageFit: "contain" },
+  sunuflix: { image: sunustreamBrand, imageFit: "contain" },
+};
 const projects = (await getGitHubProjects(locale, baseContent.projects)).map((project) => {
   const name = project.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const image = ["saay", "saayagent"].includes(name) ? saayBrand : ["sunustream", "sunuflix"].includes(name) ? sunustreamBrand : undefined;
-  return image ? { ...project, image, imageFit: "contain" as const, github: project.github ? { ...project.github, hasImage: true } : undefined } : project;
+  const visual = projectImages[name];
+  return visual ? { ...project, ...visual, github: project.github ? { ...project.github, hasImage: true } : undefined } : project;
 });
 const usesGitHub = projects.some((project) => project.github);
 const content = { ...baseContent, projects, openSource: usesGitHub ? projects.filter((project) => project.github?.license && !project.github.private) : baseContent.openSource };
