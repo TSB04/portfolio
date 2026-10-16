@@ -35,14 +35,14 @@ git push origin dev
 # Open and merge a pull request from dev into main after validation.
 ```
 
-Watch the [Actions workflow](https://github.com/TSB04/portfolio2/actions) for validation and production verification. The workflow can also be run manually from `main` to retry a failed publication or deployment. Never publish deployment prereleases from unreviewed branches.
+Watch the [Actions workflow](https://github.com/TSB04/portfolio2/actions) for validation and production verification. Run it manually from `main` to retry deployment or rebuild GitHub project data without changing source. Production checks match both commit and workflow run/attempt, so an older build of the same commit does not count as a completed refresh. Never publish deployment prereleases from unreviewed branches.
 
 ## Diagnostics and recovery
 
 - `~/tsb-portfolio/deployment.json`: active release, commit, checksum, and previous release.
 - `~/tsb-portfolio/pull-release.log`: deployment activity, rotated at 1 MB with two backups.
 - `crontab -l`: the marked poller entry; remove only that entry to pause automatic deployment.
-- `/version.json`: only the deployed commit SHA, used by the workflow's health check.
+- `/version.json`: deployed commit SHA and public build identifier, used by the workflow's health check.
 
 Artifact integrity, archive traversal protection, serialized promotions, Nginx validation, neighboring-ingress preservation, and rollback remain in `deploy/promote.py`. Failed checks do not publish a release. A failed promotion restores the previous site/configuration; a missing release leaves the active site untouched. A newer main commit supersedes pending old builds.
 

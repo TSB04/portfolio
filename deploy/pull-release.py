@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 
@@ -33,8 +34,7 @@ def deploy():
     if not re.fullmatch(r"[a-f0-9]{40}", commit):
         raise ValueError("Invalid main commit")
     state_file = ROOT / "deployment.json"
-    if state_file.exists() and json.loads(state_file.read_text()).get("commit") == commit:
-        return
+    state = json.loads(state_file.read_text()) if state_file.exists() else {}
     try:
         release = json.loads(download(f"{API}/releases/tags/portfolio-{commit}", 1_000_000))
     except urllib.error.HTTPError as error:
@@ -55,6 +55,8 @@ def deploy():
         raise ValueError("Release commit mismatch")
     if not re.fullmatch(r"\d{8}T\d{6}-[a-f0-9]{12}", manifest.get("release", "")):
         raise ValueError("Invalid deployment release name")
+    if state.get("commit") == commit and state.get("sha256") == manifest.get("sha256"):
+        return
     archive = download(assets["portfolio.tar.gz"], 100_000_000)
     promoter = download(assets["promote.py"], 100_000)
     if hashlib.sha256(archive).hexdigest() != manifest.get("sha256") or hashlib.sha256(promoter).hexdigest() != manifest.get("promoter_sha256"):
@@ -64,7 +66,10 @@ def deploy():
         logging.info("Skipping superseded release %s", commit[:12]); return
     with tempfile.TemporaryDirectory(prefix="portfolio-promote-", dir=ROOT) as temporary:
         script = Path(temporary) / "promote.py"; script.write_bytes(promoter)
-        result = subprocess.run([sys.executable, str(script), "deploy", "--release", manifest["release"], "--sha256", manifest["sha256"]],
+        release_name = manifest["release"]
+        if (ROOT / "releases" / release_name).exists():
+            release_name = time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + manifest["sha256"][:12]
+        result = subprocess.run([sys.executable, str(script), "deploy", "--release", release_name, "--sha256", manifest["sha256"]],
                                 input=archive, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180)
         logging.info("Promotion output: %s", result.stdout.decode(errors="replace")[-12000:])
         result.check_returncode()

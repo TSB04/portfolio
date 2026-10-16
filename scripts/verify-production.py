@@ -17,7 +17,8 @@ def main():
         try:
             request = urllib.request.Request(f"https://tsb-dev.fr/version.json?commit={expected}", headers={"Cache-Control": "no-cache"})
             with urllib.request.urlopen(request, timeout=15) as response:
-                if json.load(response).get("commit") != expected:
+                version = json.load(response)
+                if version.get("commit") != expected or (os.environ.get("EXPECTED_BUILD") and version.get("build") != os.environ["EXPECTED_BUILD"]):
                     raise ValueError("Production is still serving an earlier release")
             for path in ("en/", "fr/", "robots.txt", "sitemap-index.xml", "sitemap-0.xml", "og-image.png"):
                 with urllib.request.urlopen(f"https://tsb-dev.fr/{path}", timeout=15) as response:

@@ -82,4 +82,5 @@ jobs:
       - name: Confirm production serves this commit
         env:
           EXPECTED_COMMIT: ${{ github.sha }}
+          EXPECTED_BUILD: ${{ github.run_id }}-${{ github.run_attempt }}
         run: python3 scripts/verify-production.py --wait 600

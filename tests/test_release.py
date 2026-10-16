@@ -42,11 +42,25 @@ class ReleaseTests(unittest.TestCase):
             return json.dumps(self.manifest).encode()
         return self.archive if url.endswith(".tar.gz") else self.promoter
 
-    def test_already_deployed_commit_does_not_download_release(self):
-        (self.root / "deployment.json").write_text(json.dumps({"commit": self.commit}))
+    def test_already_deployed_bundle_does_not_download_archive(self):
+        (self.root / "deployment.json").write_text(json.dumps({"commit": self.commit, "sha256": self.manifest["sha256"]}))
         with patch.object(pull, "download", side_effect=self.download) as download:
             pull.deploy()
-        self.assertEqual(download.call_count, 1)
+        self.assertEqual(download.call_count, 3)
+
+    def test_failed_release_can_retry_without_overwriting_its_files(self):
+        (self.root / "releases" / self.manifest["release"]).mkdir(parents=True)
+        result = Mock(stdout=b"retry complete")
+        with patch.object(pull, "download", side_effect=self.download), patch.object(pull.subprocess, "run", return_value=result) as run:
+            pull.deploy()
+        arguments = run.call_args.args[0]
+        self.assertNotEqual(arguments[arguments.index("--release") + 1], self.manifest["release"])
+
+    def test_rebuild_of_same_commit_is_promoted_when_bundle_changes(self):
+        (self.root / "deployment.json").write_text(json.dumps({"commit": self.commit, "sha256": "0" * 64}))
+        with patch.object(pull, "download", side_effect=self.download), patch.object(pull.subprocess, "run", return_value=Mock(stdout=b"refreshed")) as run:
+            pull.deploy()
+        run.assert_called_once()
 
     def test_verified_release_is_promoted_from_the_exact_main_commit(self):
         result = Mock(stdout=b"promotion complete")

@@ -11,6 +11,7 @@ import subprocess
 import tarfile
 import time
 import shutil
+import os
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,7 +42,8 @@ def main():
 
     dist = ROOT / "dist"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    (dist / "version.json").write_text(json.dumps({"commit": commit}) + "\n")
+    build = f"{os.environ.get('GITHUB_RUN_ID', 'manual')}-{os.environ.get('GITHUB_RUN_ATTEMPT', '1')}"
+    (dist / "version.json").write_text(json.dumps({"commit": commit, "build": build}) + "\n")
     for locale in ("en", "fr"):
         if not (dist / locale / "index.html").is_file(): raise RuntimeError("Build both locales before deployment")
     buffer = io.BytesIO()
