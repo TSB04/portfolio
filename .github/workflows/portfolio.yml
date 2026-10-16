@@ -47,6 +47,8 @@ jobs:
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Build static portfolio
         env:
+          GITHUB_REPOSITORIES: "*"
+          GITHUB_PROJECT_LIMIT: "0"
           GITHUB_CLIENT_ID: ${{ secrets.PORTFOLIO_GITHUB_CLIENT_ID }}
           GITHUB_INSTALLATION_ID: ${{ secrets.PORTFOLIO_GITHUB_INSTALLATION_ID }}
           GITHUB_PRIVATE_KEY: ${{ secrets.PORTFOLIO_GITHUB_PRIVATE_KEY }}

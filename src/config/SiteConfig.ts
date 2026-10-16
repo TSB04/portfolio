@@ -1,12 +1,12 @@
 import type { SiteConfig, SiteContent, Locale } from "../types";
 
 import logo from "@images/logo.png";
-import saayAgent from "@images/saay-agent.png";
-import invoice from "@images/invoice.jpeg";
-import sunuflix from "@images/sunuflix.jpg";
-import homelab from "@images/homelab.avif";
-import profile from "@images/profile-large.jpg";
-import profileLarge from "@images/profile-large.jpg";
+import saayAgent from "@images/projects/saay/saay-studio.png";
+import invoice from "@images/projects/invora/invora.png";
+import sunuflix from "@images/projects/sunustream/colored-logo.png";
+import homelab from "@images/homelab.png";
+import profile from "@images/profil/tsb-blue&white.png";
+import profileLarge from "@images/profil/tsb-green.png";
 // Reuse locally available optimized imagery until dedicated assets are added.
 const soin = sunuflix;
 const greennext = homelab;
@@ -64,6 +64,7 @@ const baseConfig: SiteConfig = {
 
 const baseContent: SiteContent = {
   hero: {
+    image: profile,
     name: "Thierno Sadou BARRY",
     email: "thierno.sadou.barry98@gmail.com",
     specialty: "Full Stack Engineer • Java • Spring Boot • React • AI",

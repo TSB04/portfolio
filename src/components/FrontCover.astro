@@ -35,7 +35,7 @@ const items = typeof summary === "string" ? [{ title: t.nav.about, text: summary
   </div>
   <div class="hero-art" aria-hidden="true">
     <div class="hero-bubble">
-      {image && <OptimizedImage src={image} alt="" width={800} height={960} priority />}
+      {image && <OptimizedImage src={image} alt={name} width={800} height={960} priority />}
       {!image && <span class="hero-monogram">TSB<span>ENGINEERING</span></span>}
     </div>
     <span class="hero-orbit hero-orbit-one"></span>

@@ -48,6 +48,28 @@ test("submodules use verified gitlinks, approved private metadata, and bounded G
   assert.ok(!cache.includes("DO_NOT_PUBLISH") && !cache.includes("fixture-user-token"));
 }));
 
+test("wildcard includes all active owned public/private repositories across pages without a cap", async () => fixture(async () => {
+  process.env.GITHUB_USER_TOKEN = "fixture-user-token";
+  process.env.GITHUB_REPOSITORIES = "*";
+  process.env.GITHUB_PROJECT_LIMIT = "0";
+  const calls = [];
+  const first = Array.from({ length: 100 }, (_, i) => repo(`project-${i}`, { private: i % 2 === 0, visibility: i % 2 === 0 ? "private" : "public", fork: i % 3 === 0 }));
+  globalThis.fetch = async (url) => {
+    calls.push(url);
+    if (url.includes("/user/repos?")) return json(url.endsWith("page=1") ? first : [repo("final-private", { private: true, visibility: "private" }), repo("archived", { archived: true }), repo("archived-private", { private: true, archived: true, visibility: "private" }), repo("foreign", { owner: { login: "other" } })]);
+    if (url.endsWith("/languages")) return json({ TypeScript: 100 });
+    return json({}, 404);
+  };
+  const projects = await (await fresh()).getGitHubProjects("en", fallback);
+  assert.equal(projects.length, 101);
+  assert.equal(projects.filter((project) => project.github.private).length, 51);
+  assert.ok(!calls.some((url) => /\/repos\/TSB04\/archived/.test(url)));
+  for (const project of projects.filter((project) => project.github.private)) {
+    assert.equal(project.linkSource, ""); assert.equal(project.github.readmeUrl, "");
+    assert.ok(!calls.some((url) => url.endsWith(`/repos/${project.github.fullName}/readme`)));
+  }
+}));
+
 test("public releases enrich projects while absent submodules remain optional", async () => fixture(async () => {
   const publicFetch = publicAPI([repo("released")]);
   globalThis.fetch = async (url, options) => {
@@ -106,7 +128,7 @@ function publicAPI(repositories, calls = []) {
   };
 }
 
-test("public mode filters private, forked, archived, disabled and foreign repositories before enrichment", async () => fixture(async () => {
+test("public mode includes owned forks and profile repos but filters private, archived, disabled and foreign repositories", async () => fixture(async () => {
   const calls = [];
   globalThis.fetch = publicAPI([
     repo("visible"), repo("private", { private: true, visibility: "private" }), repo("fork", { fork: true }),
@@ -115,12 +137,12 @@ test("public mode filters private, forked, archived, disabled and foreign reposi
   ], calls);
   const { getGitHubProjects } = await fresh();
   const projects = await getGitHubProjects("en", fallback);
-  assert.deepEqual(projects.map((project) => project.name), ["visible"]);
+  assert.deepEqual(new Set(projects.map((project) => project.name)), new Set(["visible", "fork", "TSB04"]));
   assert.equal(projects[0].linkPreview, "https://demo.example.com/");
   assert.deepEqual(projects[0].github.languages, [{ name: "TypeScript", percent: 75 }, { name: "CSS", percent: 25 }]);
   assert.match(projects[0].github.readmeExcerpt, /documentation and readable text/);
   assert.ok(!projects[0].github.readmeExcerpt.includes("fixture-badge"));
-  assert.ok(!calls.some(({ url }) => /\/repos\/TSB04\/(private|fork|archived|disabled|foreign|TSB04)\//.test(url)));
+  assert.ok(!calls.some(({ url }) => /\/repos\/TSB04\/(private|archived|disabled|foreign)\//.test(url)));
   const cached = await readFile(".cache/github-projects.json", "utf8");
   assert.ok(!cached.includes('"fullName":"TSB04/private"'));
 }));
