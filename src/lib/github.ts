@@ -3,7 +3,7 @@ import { createPrivateKey, sign } from "node:crypto";
 import { readFile, mkdir, writeFile, rename } from "node:fs/promises";
 import { resolve } from "node:path";
 import { homedir } from "node:os";
-import type { Locale, ProjectItem } from "@types";
+import type { Locale, ProjectItem, ProjectSubmodule } from "@types";
 
 interface Repository {
   id: number;
@@ -24,6 +24,10 @@ interface Repository {
   forks_count: number;
   pushed_at: string;
   updated_at: string;
+  created_at?: string;
+  default_branch?: string;
+  open_issues_count?: number;
+  size?: number;
   license: { spdx_id: string; name: string } | null;
 }
 interface GitHubProject {
@@ -41,6 +45,12 @@ interface GitHubProject {
   license: string | null;
   languages: { name: string; percent: number }[];
   readmeExcerpt: string;
+  createdAt: string | null;
+  defaultBranch: string | null;
+  openItems: number;
+  sizeKB: number;
+  release: { name: string; url: string; publishedAt: string | null } | null;
+  submodules: ProjectSubmodule[];
 }
 
 const API = "https://api.github.com";
@@ -85,8 +95,14 @@ async function installationToken(): Promise<string | undefined> {
   const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
   const unsigned = `${encode({ alg: "RS256", typ: "JWT" })}.${encode({ iat: now - 60, exp: now + 540, iss: issuer })}`;
   const jwt = `${unsigned}.${sign("RSA-SHA256", Buffer.from(unsigned), createPrivateKey(keyText)).toString("base64url")}`;
-  const auth = await request<{ token: string }>(`/app/installations/${encodeURIComponent(installation)}/access_tokens`, jwt, { permissions: { metadata: "read" } });
-  return auth.token;
+  const endpoint = `/app/installations/${encodeURIComponent(installation)}/access_tokens`;
+  try {
+    return (await request<{ token: string }>(endpoint, jwt, { permissions: { metadata: "read", contents: "read" } })).token;
+  } catch (error) {
+    if (!(error instanceof GitHubError) || ![403, 422].includes(error.status)) throw error;
+    console.warn("[github] Contents permission unavailable; continuing with repository metadata.");
+    return (await request<{ token: string }>(endpoint, jwt, { permissions: { metadata: "read" } })).token;
+  }
 }
 function safeWebURL(value: string | null): string {
   if (!value) return "";
@@ -106,12 +122,66 @@ function readmeText(markdown: string): string {
   const text = (paragraphs[0] || "").replace(/[*_`]/g, "").replace(/\s+/g, " ").trim();
   return text.length > 600 ? `${text.slice(0, 597).replace(/\s+\S*$/, "")}…` : text;
 }
-async function enrich(repo: Repository, token?: string): Promise<GitHubProject> {
+function repositoryName(value: string, parent: string): string | undefined {
+  try {
+    const normalized = value.replace(/^git@github\.com:/i, "https://github.com/").replace(/^ssh:\/\/git@github\.com\//i, "https://github.com/");
+    const url = new URL(normalized, `https://github.com/${parent}/`);
+    if (url.protocol !== "https:" || url.hostname.toLowerCase() !== "github.com" || url.port || url.username || url.password || url.search || url.hash) return;
+    const name = url.pathname.replace(/^\//, "").replace(/\.git\/?$/, "").replace(/\/$/, "");
+    return /^[\w-]+\/[\w.-]+$/.test(name) ? name : undefined;
+  } catch { return; }
+}
+
+async function submodules(repo: Repository, token: string | undefined, approved: Set<string>): Promise<ProjectSubmodule[]> {
   const endpoint = `/repos/${repo.full_name.split("/").map(encodeURIComponent).join("/")}`;
-  const [languages, readme] = await Promise.allSettled([
+  try {
+    const file = await request<{ content?: string; encoding?: string; size?: number }>(`${endpoint}/contents/.gitmodules`, token);
+    if (file.encoding !== "base64" || !file.content || file.content.length > 100_000 || (file.size ?? 0) > 64_000) return [];
+    const config = Buffer.from(file.content, "base64").toString("utf8");
+    const entries: { path: string; target: string }[] = [];
+    let path = "", target = "";
+    const save = () => {
+      const name = repositoryName(target, repo.full_name);
+      if (name && path && !path.startsWith("/") && !path.includes("\\") && !path.split("/").some((part) => ["", ".", "..", ".git"].includes(part))) entries.push({ path, target: name });
+      path = ""; target = "";
+    };
+    let inSubmodule = false;
+    for (const raw of config.split(/\r?\n/)) {
+      const line = raw.trim();
+      if (line.startsWith("[")) { save(); inSubmodule = /^\[submodule\s+"[^"\r\n]+"\]$/i.test(line); continue; }
+      if (!inSubmodule || /^[#;]/.test(line)) continue;
+      const match = /^(path|url)\s*=\s*(.+)$/i.exec(line);
+      if (!match) continue;
+      const value = match[2].trim().replace(/^"(.*)"$/, "$1");
+      if (match[1].toLowerCase() === "path") path = value; else target = value;
+    }
+    save();
+    if (!entries.length) return [];
+    const tree = await request<{ tree: { path: string; mode: string; sha: string }[]; truncated?: boolean }>(`${endpoint}/git/trees/${encodeURIComponent(repo.default_branch || "HEAD")}?recursive=1`, token);
+    const gitlinks = new Map(tree.tree.filter((entry) => entry.mode === "160000" && /^[a-f\d]{40,64}$/i.test(entry.sha)).map((entry) => [entry.path, entry.sha]));
+    const candidates = entries.filter((entry, index) => gitlinks.has(entry.path) && entries.findIndex((other) => other.path === entry.path) === index).slice(0, 12);
+    const result: ProjectSubmodule[] = [];
+    for (let i = 0; i < candidates.length; i += 4) {
+      const batch = await Promise.allSettled(candidates.slice(i, i + 4).map(async (entry) => {
+        const child = await request<Repository>(`/repos/${entry.target.split("/").map(encodeURIComponent).join("/")}`, token);
+        if (child.disabled || child.full_name.toLowerCase() !== entry.target.toLowerCase() || (child.private && !approved.has(child.full_name.toLowerCase()))) return;
+        return { name: child.name, fullName: child.full_name, path: entry.path, summary: child.description || "", language: child.language,
+          private: child.private, url: child.private ? "" : `https://github.com/${child.full_name}`, commit: gitlinks.get(entry.path)! } satisfies ProjectSubmodule;
+      }));
+      for (const item of batch) if (item.status === "fulfilled" && item.value) result.push(item.value);
+    }
+    return result;
+  } catch { return []; }
+}
+
+async function enrich(repo: Repository, token: string | undefined, approved: Set<string>): Promise<GitHubProject> {
+  const endpoint = `/repos/${repo.full_name.split("/").map(encodeURIComponent).join("/")}`;
+  const [languages, readme, release, components] = await Promise.allSettled([
     request<Record<string, number>>(`${endpoint}/languages`, token),
     // Private source content stays private; only project metadata is displayed.
-    repo.private ? Promise.resolve({} as { content?: string; encoding?: string }) : request<{ content?: string; encoding?: string }>(`${endpoint}/readme`),
+    repo.private ? Promise.resolve({} as { content?: string; encoding?: string }) : request<{ content?: string; encoding?: string }>(`${endpoint}/readme`, token),
+    repo.private ? Promise.resolve(null) : request<{ tag_name: string; html_url: string; published_at: string | null }>(`${endpoint}/releases/latest`, token),
+    submodules(repo, token, approved),
   ]);
   const entries = languages.status === "fulfilled" ? Object.entries(languages.value).filter(([, size]) => typeof size === "number" && size > 0).sort((a, b) => b[1] - a[1]) : [];
   const bytes = entries.reduce((sum, [, size]) => sum + size, 0);
@@ -123,12 +193,18 @@ async function enrich(repo: Repository, token?: string): Promise<GitHubProject> 
     stars: repo.stargazers_count, forks: repo.forks_count, updatedAt: repo.pushed_at || repo.updated_at,
     license: repo.license ? (repo.license.spdx_id === "NOASSERTION" ? repo.license.name : repo.license.spdx_id) : null,
     languages: entries.map(([name, size]) => ({ name, percent: Math.round(size / bytes * 1000) / 10 })), readmeExcerpt: excerpt,
+    createdAt: repo.created_at || null, defaultBranch: repo.default_branch || null,
+    openItems: Math.max(0, repo.open_issues_count || 0), sizeKB: Math.max(0, repo.size || 0),
+    release: release.status === "fulfilled" && release.value ? { name: release.value.tag_name, url: safeWebURL(release.value.html_url), publishedAt: release.value.published_at } : null,
+    submodules: components.status === "fulfilled" ? components.value : [],
   };
 }
 async function load(owner: string): Promise<GitHubProject[]> {
   const include = env("GITHUB_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
   const limit = Math.min(24, Math.max(1, Number.parseInt(env("GITHUB_PROJECT_LIMIT"), 10) || 12));
-  const key = JSON.stringify({ version: 4, owner: owner.toLowerCase(), include, limit, installation: env("GITHUB_INSTALLATION_ID"), authenticated: !!((env("GITHUB_CLIENT_ID") || env("GITHUB_APP_ID")) && (env("GITHUB_PRIVATE_KEY_PATH") || env("GITHUB_PRIVATE_KEY"))) });
+  const moduleInclude = env("GITHUB_SUBMODULE_REPOSITORIES").split(/[\s,]+/).filter(Boolean).map((name) => name.includes("/") ? name.toLowerCase() : `${owner}/${name}`.toLowerCase());
+  const approved = new Set([...include, ...moduleInclude]);
+  const key = JSON.stringify({ version: 6, userAuth: !!env("GITHUB_USER_TOKEN"), owner: owner.toLowerCase(), include, moduleInclude, limit, installation: env("GITHUB_INSTALLATION_ID"), authenticated: !!env("GITHUB_USER_TOKEN") || !!((env("GITHUB_CLIENT_ID") || env("GITHUB_APP_ID")) && (env("GITHUB_PRIVATE_KEY_PATH") || env("GITHUB_PRIVATE_KEY"))) });
   let cached: { key: string; fetchedAt: number; projects: GitHubProject[] } | undefined;
   try {
     const data = JSON.parse(await readFile(cacheFile, "utf8"));
@@ -136,10 +212,13 @@ async function load(owner: string): Promise<GitHubProject[]> {
   } catch { /* A cache is optional and never contains credentials. */ }
   if (cached && Date.now() - cached.fetchedAt < cacheTTL) return cached.projects;
   try {
-    const token = await installationToken();
+    const userToken = env("GITHUB_USER_TOKEN");
+    const token = userToken || await installationToken();
     const repos: Repository[] = [];
     for (let page = 1; page <= 10; page++) {
-      const data = token
+      const data = userToken
+        ? await request<Repository[]>(`/user/repos?affiliation=owner&visibility=all&sort=pushed&per_page=100&page=${page}`, userToken)
+        : token
         ? await request<{ repositories: Repository[] }>(`/installation/repositories?per_page=100&page=${page}`, token).then((data) => data.repositories)
         : await request<Repository[]>(`/users/${encodeURIComponent(owner)}/repos?type=owner&sort=pushed&per_page=100&page=${page}`);
       // Private metadata requires both App access and explicit repository selection.
@@ -150,7 +229,7 @@ async function load(owner: string): Promise<GitHubProject[]> {
       (b.pushed_at || b.updated_at).localeCompare(a.pushed_at || a.updated_at) || a.full_name.localeCompare(b.full_name)
     ).slice(0, limit);
     const projects: GitHubProject[] = [];
-    for (let i = 0; i < selected.length; i += 4) projects.push(...await Promise.all(selected.slice(i, i + 4).map((repo) => enrich(repo, token))));
+    for (let i = 0; i < selected.length; i += 4) projects.push(...await Promise.all(selected.slice(i, i + 4).map((repo) => enrich(repo, token, approved))));
     if (!projects.length) throw new Error("No matching projects");
     try {
       await mkdir(resolve(".cache"), { recursive: true });
@@ -158,7 +237,7 @@ async function load(owner: string): Promise<GitHubProject[]> {
       await writeFile(temporary, JSON.stringify({ key, authenticated: !!token, fetchedAt: Date.now(), projects }));
       await rename(temporary, cacheFile);
     } catch { console.warn("[github] Project metadata loaded; local cache could not be written."); }
-    console.info(`[github] Loaded ${projects.length} projects, including ${projects.filter((project) => project.private).length} private (${token ? "GitHub App" : "public API"}).`);
+    console.info(`[github] Loaded ${projects.length} projects, including ${projects.filter((project) => project.private).length} private and ${projects.reduce((sum, project) => sum + project.submodules.length, 0)} components (${userToken ? "authenticated user" : token ? "GitHub App" : "public API"}).`);
     return projects;
   } catch (error) {
     const reason = error instanceof GitHubError ? `HTTP ${error.status}` : "connection or App configuration unavailable";
@@ -179,7 +258,8 @@ export async function getGitHubProjects(locale: Locale, fallback: ProjectItem[],
       name: repo.name, summary: repo.description || repo.readmeExcerpt || (locale === "fr" ? "Consultez le dépôt pour découvrir ce projet." : "Explore the repository to learn about this project."),
       linkSource: repo.private ? "" : repo.url, linkPreview: repo.homepage, image: custom?.image || fallback[0].image,
       tags: [...new Set([repo.language, ...repo.topics].filter((tag): tag is string => !!tag))],
-      github: { private: repo.private, fullName: repo.fullName, stars: repo.stars, forks: repo.forks, updatedAt: repo.updatedAt, license: repo.license, language: repo.language, languages: repo.languages, readmeUrl: repo.private ? "" : `${repo.url}#readme`, readmeExcerpt: repo.description ? repo.readmeExcerpt : "", hasImage: !!custom },
+      github: { private: repo.private, fullName: repo.fullName, stars: repo.stars, forks: repo.forks, updatedAt: repo.updatedAt, license: repo.license, language: repo.language, languages: repo.languages, readmeUrl: repo.private ? "" : `${repo.url}#readme`, readmeExcerpt: repo.description ? repo.readmeExcerpt : "", hasImage: !!custom,
+        createdAt: repo.createdAt, defaultBranch: repo.defaultBranch, openItems: repo.openItems, sizeKB: repo.sizeKB, release: repo.release, submodules: repo.submodules },
     };
   });
 }

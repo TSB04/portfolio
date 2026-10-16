@@ -35,12 +35,24 @@ export interface ExperienceItem {
   technologies: string[];
 }
 
+export interface ProjectSubmodule {
+  name: string;
+  fullName: string;
+  path: string;
+  summary: string;
+  language: string | null;
+  private: boolean;
+  url: string;
+  commit: string;
+}
+
 export interface ProjectItem {
   name: string;
   summary: string;
   linkPreview: string;
   linkSource: string;
   image: ImageMetadata;
+  imageFit?: "cover" | "contain";
   tags: string[];
   github?: {
     private?: boolean;
@@ -54,6 +66,12 @@ export interface ProjectItem {
     readmeUrl: string;
     readmeExcerpt: string;
     hasImage: boolean;
+    createdAt?: string | null;
+    defaultBranch?: string | null;
+    openItems?: number;
+    sizeKB?: number;
+    release?: { name: string; url: string; publishedAt: string | null } | null;
+    submodules?: ProjectSubmodule[];
   };
 }
 
@@ -191,6 +209,17 @@ export interface TranslationKeys {
     license: string;
     languages: string;
     repositoryNotes: string;
+    overview: string;
+    created: string;
+    defaultBranch: string;
+    openItems: string;
+    repositorySize: string;
+    latestRelease: string;
+    submodules: string;
+    componentSource: string;
+    pinnedCommit: string;
+    privateRepository: string;
+    publicRepository: string;
   };
   about: {
     title: string;

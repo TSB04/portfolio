@@ -6,11 +6,80 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const moduleURL = new URL("../src/lib/github.ts", import.meta.url);
-const envKeys = ["GITHUB_APP_ID", "GITHUB_CLIENT_ID", "GITHUB_INSTALLATION_ID", "GITHUB_PRIVATE_KEY_PATH", "GITHUB_PRIVATE_KEY", "GITHUB_OWNER", "GITHUB_REPOSITORIES", "GITHUB_PROJECT_LIMIT"];
+const envKeys = ["GITHUB_APP_ID", "GITHUB_CLIENT_ID", "GITHUB_INSTALLATION_ID", "GITHUB_PRIVATE_KEY_PATH", "GITHUB_PRIVATE_KEY", "GITHUB_OWNER", "GITHUB_REPOSITORIES", "GITHUB_PROJECT_LIMIT", "GITHUB_SUBMODULE_REPOSITORIES", "GITHUB_USER_TOKEN"];
 const fallback = [{ name: "Local", summary: "Local fallback", linkSource: "", linkPreview: "", image: { src: "/local.webp", width: 1, height: 1, format: "webp" }, tags: [] }];
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status });
 const repo = (name, overrides = {}) => ({ id: 1, name, full_name: `TSB04/${name}`, owner: { login: "TSB04" }, private: false, visibility: "public", fork: false, archived: false, disabled: false, description: "Repository description", html_url: `https://github.com/TSB04/${name}`, homepage: "demo.example.com", language: "TypeScript", topics: ["web"], stargazers_count: 3, forks_count: 2, pushed_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-02T00:00:00Z", license: { spdx_id: "MIT", name: "MIT License" }, ...overrides });
 const fresh = () => import(`${moduleURL.href}?test=${randomUUID()}`);
+
+test("submodules use verified gitlinks, approved private metadata, and bounded GitHub URLs", async () => fixture(async () => {
+  process.env.GITHUB_USER_TOKEN = "fixture-user-token";
+  process.env.GITHUB_REPOSITORIES = "platform";
+  process.env.GITHUB_SUBMODULE_REPOSITORIES = "private-component";
+  const calls = [];
+  const config = [
+    '[submodule "web"]', 'path = apps/web', 'url = ../web.git',
+    '[submodule "api"]', 'path = services/api', 'url = git@github.com:TSB04/private-component.git',
+    '[submodule "hidden"]', 'path = services/hidden', 'url = ../hidden.git',
+    '[submodule "invalid"]', 'path = external', 'url = https://example.com/external.git',
+    '[submodule "folder"]', 'path = ordinary-folder', 'url = ../not-a-module.git',
+  ].join("\n");
+  globalThis.fetch = async (url, options) => {
+    calls.push(url);
+    assert.equal(options.headers.Authorization, "Bearer fixture-user-token");
+    if (url.includes("/user/repos?")) return json([repo("platform", { private: true, visibility: "private", created_at: "2025-02-01T00:00:00Z", default_branch: "main", open_issues_count: 4, size: 4096 })]);
+    if (url.endsWith("/contents/.gitmodules")) return json({ encoding: "base64", content: Buffer.from(config).toString("base64") });
+    if (url.includes("/git/trees/")) return json({ tree: ["apps/web", "services/api", "services/hidden", "external"].map((path) => ({ path, mode: "160000", sha: "a".repeat(40) })).concat([{ path: "ordinary-folder", mode: "040000", sha: "b".repeat(40) }]) });
+    if (url.endsWith("/languages")) return json({ TypeScript: 100 });
+    if (url.endsWith("/repos/TSB04/web")) return json(repo("web"));
+    if (url.endsWith("/repos/TSB04/private-component")) return json(repo("private-component", { private: true, visibility: "private" }));
+    if (url.endsWith("/repos/TSB04/hidden")) return json(repo("hidden", { private: true, visibility: "private", description: "DO_NOT_PUBLISH" }));
+    throw new Error("Unexpected request");
+  };
+  const projects = await (await fresh()).getGitHubProjects("en", fallback);
+  assert.equal(projects[0].github.createdAt, "2025-02-01T00:00:00Z");
+  assert.equal(projects[0].github.openItems, 4);
+  assert.equal(projects[0].github.sizeKB, 4096);
+  assert.deepEqual(projects[0].github.submodules.map((item) => item.name), ["web", "private-component"]);
+  assert.equal(projects[0].github.submodules[0].url, "https://github.com/TSB04/web");
+  assert.equal(projects[0].github.submodules[1].url, "");
+  assert.ok(!calls.some((url) => url.includes("example.com") || url.endsWith("/readme") || url.includes("not-a-module")));
+  const cache = await readFile(".cache/github-projects.json", "utf8");
+  assert.ok(!cache.includes("DO_NOT_PUBLISH") && !cache.includes("fixture-user-token"));
+}));
+
+test("public releases enrich projects while absent submodules remain optional", async () => fixture(async () => {
+  const publicFetch = publicAPI([repo("released")]);
+  globalThis.fetch = async (url, options) => {
+    if (url.endsWith("/releases/latest")) return json({ tag_name: "v2.1.0", html_url: "https://github.com/TSB04/released/releases/tag/v2.1.0", published_at: "2026-10-01T00:00:00Z" });
+    if (url.endsWith("/contents/.gitmodules")) return json({}, 404);
+    return publicFetch(url, options);
+  };
+  const projects = await (await fresh()).getGitHubProjects("en", fallback);
+  assert.equal(projects[0].github.release.name, "v2.1.0");
+  assert.deepEqual(projects[0].github.submodules, []);
+}));
+
+test("Apps without Contents permission retain metadata-only projects", async () => fixture(async () => {
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  process.env.GITHUB_APP_ID = "fixture-app";
+  process.env.GITHUB_INSTALLATION_ID = "123";
+  process.env.GITHUB_PRIVATE_KEY = privateKey.export({ type: "pkcs8", format: "pem" });
+  const permissions = [];
+  globalThis.fetch = async (url, options) => {
+    if (url.endsWith("/access_tokens")) {
+      const value = JSON.parse(options.body).permissions; permissions.push(value);
+      return value.contents ? json({}, 422) : json({ token: "fixture-metadata-token" });
+    }
+    if (url.includes("/installation/repositories")) return json({ repositories: [repo("available")] });
+    if (url.endsWith("/languages")) return json({ TypeScript: 10 });
+    return json({}, 403);
+  };
+  const projects = await (await fresh()).getGitHubProjects("en", fallback);
+  assert.equal(projects[0].name, "available");
+  assert.deepEqual(projects[0].github.submodules, []);
+  assert.deepEqual(permissions, [{ metadata: "read", contents: "read" }, { metadata: "read" }]);
+}));
 
 async function fixture(run) {
   const previousCwd = process.cwd();
@@ -56,7 +125,7 @@ test("public mode filters private, forked, archived, disabled and foreign reposi
   assert.ok(!cached.includes('"fullName":"TSB04/private"'));
 }));
 
-test("App authentication signs an RS256 JWT and requests only read-only metadata; tokens never enter cache", async () => fixture(async () => {
+test("App authentication signs an RS256 JWT and requests read-only metadata and contents; tokens never enter cache", async () => fixture(async () => {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.GITHUB_CLIENT_ID = "test-client-id";
   process.env.GITHUB_INSTALLATION_ID = "123";
@@ -65,7 +134,7 @@ test("App authentication signs an RS256 JWT and requests only read-only metadata
   let authenticatedList = false;
   globalThis.fetch = async (url, options) => {
     if (url.endsWith("/access_tokens")) {
-      assert.deepEqual(JSON.parse(options.body), { permissions: { metadata: "read" } });
+      assert.deepEqual(JSON.parse(options.body), { permissions: { metadata: "read", contents: "read" } });
       const [header, claims, signature] = options.headers.Authorization.slice(7).split(".");
       assert.equal(JSON.parse(Buffer.from(header, "base64url")).alg, "RS256");
       const payload = JSON.parse(Buffer.from(claims, "base64url"));
@@ -79,7 +148,7 @@ test("App authentication signs an RS256 JWT and requests only read-only metadata
       return json({ repositories: [repo("public"), repo("private", { private: true, visibility: "private" })] });
     }
     if (url.endsWith("/languages")) return json({ TypeScript: 10 });
-    if (url.endsWith("/readme")) { assert.equal(options.headers.Authorization, undefined); return json({}, 404); }
+    if (url.endsWith("/readme")) { assert.equal(options.headers.Authorization, "Bearer fixture-installation-token"); return json({}, 404); }
     throw new Error("Unexpected API request");
   };
   const projects = await (await fresh()).getGitHubProjects("en", fallback);

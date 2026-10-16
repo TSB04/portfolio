@@ -10,6 +10,7 @@ An interactive, bilingual engineering portfolio by [Thierno Sadou BARRY](https:/
 - Responsive book with page turns, chapter navigation, keyboard controls, and reduced-motion support.
 - Split hero with a typing summary and an optional image.
 - GitHub projects ordered by latest push, fetched only at build time.
+- Repository activity, language breakdowns, public releases, and approved submodule components.
 - Self-hosted fonts, optimized images, localized metadata, structured data, sitemap, and robots rules.
 - CI validation and automatic deployment after merge to `main`.
 
