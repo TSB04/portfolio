@@ -105,6 +105,7 @@ export interface HeroContent {
   specialty: string;
   summary: string | { title: string; text: string }[];
   image?: ImageMetadata;
+  imageDark?: ImageMetadata;
   email: string;
   availability: string;
   location: string;
@@ -130,6 +131,7 @@ export interface ContactContent {
 export interface AboutContent {
   description: string;
   image: ImageMetadata;
+  imageDark?: ImageMetadata;
 }
 
 /** Legacy component compatibility; active components use the content types above. */
